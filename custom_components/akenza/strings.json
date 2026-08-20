@@ -1,0 +1,111 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to akenza",
+        "description": "Create an API key in akenza (Organization settings → API keys) with read access to workspaces, assets, device types and device data, then paste it here.",
+        "data": {
+          "api_key": "API key",
+          "base_url": "API URL"
+        },
+        "data_description": {
+          "api_key": "Secret of an organization-level akenza API key.",
+          "base_url": "Only change this for private or regional akenza deployments."
+        }
+      },
+      "workspaces": {
+        "title": "Select devices",
+        "description": "{organization} has {workspace_count} accessible workspace(s). Choose which devices to import into Home Assistant.",
+        "data": {
+          "workspace_ids": "Workspaces",
+          "tag_ids": "Tags",
+          "default_topic_only": "Only import the default topic",
+          "enable_hidden_kpis": "Include data keys hidden from KPIs"
+        },
+        "data_description": {
+          "workspace_ids": "Devices from these workspaces are imported.",
+          "tag_ids": "Optional: only import devices that carry at least one of these tags.",
+          "default_topic_only": "Skip lifecycle, configuration and other secondary topics.",
+          "enable_hidden_kpis": "Create entities for data keys the device type marks as hidden (created disabled otherwise)."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate akenza",
+        "description": "The API key for {organization} is no longer valid. Enter a new key for the same organization.",
+        "data": {
+          "api_key": "[%key:component::akenza::config::step::user::data::api_key%]",
+          "base_url": "[%key:component::akenza::config::step::user::data::base_url%]"
+        },
+        "data_description": {
+          "api_key": "[%key:component::akenza::config::step::user::data_description::api_key%]",
+          "base_url": "[%key:component::akenza::config::step::user::data_description::base_url%]"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure akenza",
+        "description": "Replace the API key or API URL for {organization}.",
+        "data": {
+          "api_key": "[%key:component::akenza::config::step::user::data::api_key%]",
+          "base_url": "[%key:component::akenza::config::step::user::data::base_url%]"
+        },
+        "data_description": {
+          "api_key": "[%key:component::akenza::config::step::user::data_description::api_key%]",
+          "base_url": "[%key:component::akenza::config::step::user::data_description::base_url%]"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "The API key was rejected or lacks permissions.",
+      "cannot_connect": "Could not reach the akenza API.",
+      "invalid_url": "The API URL must start with https://.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This akenza organization is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "reconfigure_successful": "Reconfiguration was successful.",
+      "wrong_account": "The API key belongs to a different organization."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "akenza options",
+        "description": "{organization} has {workspace_count} accessible workspace(s).",
+        "data": {
+          "workspace_ids": "[%key:component::akenza::config::step::workspaces::data::workspace_ids%]",
+          "tag_ids": "[%key:component::akenza::config::step::workspaces::data::tag_ids%]",
+          "default_topic_only": "[%key:component::akenza::config::step::workspaces::data::default_topic_only%]",
+          "enable_hidden_kpis": "[%key:component::akenza::config::step::workspaces::data::enable_hidden_kpis%]",
+          "poll_interval_minutes": "Metadata refresh interval"
+        },
+        "data_description": {
+          "workspace_ids": "[%key:component::akenza::config::step::workspaces::data_description::workspace_ids%]",
+          "tag_ids": "[%key:component::akenza::config::step::workspaces::data_description::tag_ids%]",
+          "default_topic_only": "[%key:component::akenza::config::step::workspaces::data_description::default_topic_only%]",
+          "enable_hidden_kpis": "[%key:component::akenza::config::step::workspaces::data_description::enable_hidden_kpis%]",
+          "poll_interval_minutes": "How often the device list, online state and signal metrics are refreshed. Measurements arrive live regardless."
+        }
+      }
+    },
+    "abort": {
+      "invalid_auth": "[%key:component::akenza::config::error::invalid_auth%]",
+      "cannot_connect": "[%key:component::akenza::config::error::cannot_connect%]"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "online": { "name": "Online" },
+      "stream_connected": { "name": "Live stream" }
+    },
+    "sensor": {
+      "last_seen": { "name": "Last seen" },
+      "rssi": { "name": "RSSI" },
+      "snr": { "name": "SNR" },
+      "spreading_factor": { "name": "Spreading factor" },
+      "gateways": { "name": "Gateways" },
+      "uplink_battery": { "name": "Battery" },
+      "device_count": { "name": "Devices" }
+    }
+  }
+}

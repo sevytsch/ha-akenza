@@ -1,0 +1,12 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "stream_connected": { "default": "mdi:lan-connect", "state": { "off": "mdi:lan-disconnect" } }
+    },
+    "sensor": {
+      "spreading_factor": { "default": "mdi:radio-tower" },
+      "gateways": { "default": "mdi:access-point-network" },
+      "device_count": { "default": "mdi:devices" }
+    }
+  }
+}

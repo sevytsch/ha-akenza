@@ -1,0 +1,304 @@
+{
+  "content": [
+    {
+      "connectivity": "LORA",
+      "created": "2022-09-20T18:20:07Z",
+      "customFields": [],
+      "dataFlow": {
+        "id": "0836f9542a05a0d8",
+        "name": "MilesightEM500",
+        "deviceType": {
+          "id": "337096c7a576c35e",
+          "name": "EM500-CO2",
+          "pictureUrl": "https://raw.githubusercontent.com/akenza-io/device-type-library/main/types/milesight/EM500-CO2/EM500-CO2.png"
+        },
+        "deviceConnector": {
+          "authType": "BASIC",
+          "decodingType": "NONE",
+          "id": "07ffaa68b66110df",
+          "name": "Swisscom LPN"
+        },
+        "workspaceId": "2222222222222222",
+        "organizationId": "1111111111111111"
+      },
+      "dataFlowId": "0836f9542a05a0d8",
+      "description": null,
+      "deviceId": "A1B2C3D4E5F60001",
+      "excludeFromLifecycleReport": false,
+      "id": "02bf028baeb96713",
+      "integration": {
+        "deleted": false,
+        "global": true,
+        "id": "06d41cc325f5f85c",
+        "name": "Akenza - Swisscom LoRaWAN",
+        "provider": "swisscom_lora",
+        "readOnly": false,
+        "type": "SWISSCOM_ACTILITY"
+      },
+      "name": "Garden CO2",
+      "online": true,
+      "onlineState": "ONLINE",
+      "onlineTimeout": 86400,
+      "organizationId": "1111111111111111",
+      "properties": {},
+      "registered": true,
+      "tags": [],
+      "type": "DEVICE",
+      "updated": "2025-06-11T20:31:14Z",
+      "uplinkMetrics": {
+        "uplinkId": "e4d0bbb4-7775-4ccc-9715-ac04ae4e4ab4",
+        "deviceId": "A1B2C3D4E5F60001",
+        "uplinkSize": 379,
+        "timestamp": "2026-08-20T14:55:35Z",
+        "port": 85,
+        "frameCountUp": 205924,
+        "frameCountDown": 65923,
+        "rssi": -103.0,
+        "snr": 8.0,
+        "sf": 7,
+        "txPower": 8.0,
+        "numberOfGateways": 2,
+        "esp": -103.64,
+        "sqi": 3,
+        "signalQuality": "GOOD",
+        "batteryLevel": 91.0,
+        "batteryLevelStatus": "GOOD",
+        "id": "02bf028baeb96713"
+      },
+      "workspaceId": "2222222222222222"
+    },
+    {
+      "connectivity": "LORA",
+      "created": "2025-12-04T22:36:20Z",
+      "customFields": [],
+      "dataFlow": {
+        "id": "08ab4041e32e2196",
+        "name": "test",
+        "deviceType": null,
+        "deviceConnector": {
+          "authType": "BASIC",
+          "decodingType": "NONE",
+          "id": "070acb07d55b6d6a",
+          "name": "Actility Connector"
+        },
+        "workspaceId": "3333333333333333",
+        "organizationId": "1111111111111111"
+      },
+      "dataFlowId": "08ab4041e32e2196",
+      "description": null,
+      "deviceId": "A1B2C3D4E5F60001",
+      "excludeFromLifecycleReport": false,
+      "id": "02ba658a48d50849",
+      "integration": {
+        "deleted": false,
+        "global": false,
+        "id": "060b9bf90293dab8",
+        "name": "Sevy Test Integration",
+        "provider": "swisscom_lora",
+        "readOnly": false,
+        "type": "SWISSCOM_ACTILITY"
+      },
+      "name": "Silent device",
+      "online": null,
+      "onlineState": "UNKNOWN",
+      "onlineTimeout": 43200,
+      "organizationId": "1111111111111111",
+      "properties": {},
+      "registered": true,
+      "tags": [],
+      "type": "DEVICE",
+      "updated": "2026-06-22T22:34:07Z",
+      "workspaceId": "3333333333333333"
+    },
+    {
+      "connectivity": "LORA",
+      "created": "2023-09-20T12:36:23Z",
+      "customFields": [],
+      "dataFlow": {
+        "id": "081af43bffff1413",
+        "name": "Swisscom Elsys ERS Eco",
+        "deviceType": {
+          "id": "331b994e3d4d295b",
+          "name": "ERS Eco Lite LoRa",
+          "pictureUrl": "https://raw.githubusercontent.com/akenza-io/device-type-library/main/types/elsys/ers-eco/erseco.png"
+        },
+        "deviceConnector": {
+          "authType": "BASIC",
+          "decodingType": "NONE",
+          "id": "07ffaa68b66110df",
+          "name": "Swisscom LPN"
+        },
+        "workspaceId": "2222222222222222",
+        "organizationId": "1111111111111111"
+      },
+      "dataFlowId": "081af43bffff1413",
+      "description": null,
+      "deviceId": "A1B2C3D4E5F60001",
+      "excludeFromLifecycleReport": false,
+      "id": "020784546ed5d03b",
+      "integration": {
+        "deleted": false,
+        "global": true,
+        "id": "06d41cc325f5f85c",
+        "name": "Akenza - Swisscom LoRaWAN",
+        "provider": "swisscom_lora",
+        "readOnly": false,
+        "type": "SWISSCOM_ACTILITY"
+      },
+      "name": "Kitchen",
+      "online": true,
+      "onlineState": "ONLINE",
+      "onlineTimeout": 43200,
+      "organizationId": "1111111111111111",
+      "properties": {},
+      "registered": true,
+      "tags": [
+        {
+          "id": "7100000000000001",
+          "name": "Indoor",
+          "description": null
+        }
+      ],
+      "type": "DEVICE",
+      "updated": "2024-02-14T06:37:59Z",
+      "uplinkMetrics": {
+        "uplinkId": "2787211c-337e-4299-8208-c361458a2b68",
+        "deviceId": "A1B2C3D4E5F60001",
+        "uplinkSize": 369,
+        "timestamp": "2026-08-20T14:58:38Z",
+        "port": 5,
+        "frameCountUp": 15632,
+        "frameCountDown": 1054,
+        "rssi": -102.0,
+        "snr": 2.75,
+        "sf": 7,
+        "txPower": 16.0,
+        "numberOfGateways": 2,
+        "esp": -103.85,
+        "sqi": 3,
+        "signalQuality": "GOOD",
+        "batteryLevel": 60.0,
+        "batteryLevelStatus": "MEDIUM",
+        "id": "020784546ed5d03b"
+      },
+      "workspaceId": "2222222222222222"
+    },
+    {
+      "connectivity": "HTTP",
+      "created": "2023-05-08T14:31:28Z",
+      "customFields": [],
+      "dataFlow": {
+        "id": "08f1da6c1583e3d7",
+        "name": "Cat Flap",
+        "deviceType": null,
+        "deviceConnector": {
+          "authType": "BASIC",
+          "decodingType": "NONE",
+          "id": "0749b40c54b4de23",
+          "name": "Test"
+        },
+        "workspaceId": "2222222222222222",
+        "organizationId": "1111111111111111"
+      },
+      "dataFlowId": "08f1da6c1583e3d7",
+      "description": null,
+      "deviceId": "A1B2C3D4E5F60001",
+      "excludeFromLifecycleReport": false,
+      "id": "025d93694916aadb",
+      "integration": null,
+      "name": "Cat tracker",
+      "online": true,
+      "onlineState": "ONLINE",
+      "onlineTimeout": 86400,
+      "organizationId": "1111111111111111",
+      "properties": {},
+      "registered": null,
+      "tags": [],
+      "type": "DEVICE",
+      "updated": "2023-05-12T11:03:26Z",
+      "uplinkMetrics": {
+        "uplinkId": "05713d49-a812-4176-8612-0be3ce134d04",
+        "deviceId": "A1B2C3D4E5F60001",
+        "uplinkSize": 30,
+        "timestamp": "2026-08-20T15:00:00Z",
+        "batteryLevel": 37.0,
+        "batteryLevelStatus": "LOW",
+        "id": "025d93694916aadb"
+      },
+      "workspaceId": "2222222222222222"
+    },
+    {
+      "connectivity": "LORA",
+      "created": "2023-01-20T15:53:22Z",
+      "customFields": [],
+      "dataFlow": {
+        "id": "08ed51aa63787232",
+        "name": "MClimate Vicki Webhook back",
+        "deviceType": {
+          "id": "3372f14fe98432c0",
+          "name": "MClimate Vicki FW 4+",
+          "pictureUrl": null
+        },
+        "deviceConnector": {
+          "authType": "BASIC",
+          "decodingType": "NONE",
+          "id": "07ffaa68b66110df",
+          "name": "Swisscom LPN"
+        },
+        "workspaceId": "2222222222222222",
+        "organizationId": "1111111111111111"
+      },
+      "dataFlowId": "08ed51aa63787232",
+      "description": null,
+      "deviceId": "A1B2C3D4E5F60001",
+      "excludeFromLifecycleReport": false,
+      "id": "0293268877b09633",
+      "integration": {
+        "deleted": false,
+        "global": true,
+        "id": "06d41cc325f5f85c",
+        "name": "Akenza - Swisscom LoRaWAN",
+        "provider": "swisscom_lora",
+        "readOnly": false,
+        "type": "SWISSCOM_ACTILITY"
+      },
+      "name": "Bathroom valve",
+      "online": true,
+      "onlineState": "ONLINE",
+      "onlineTimeout": 86400,
+      "organizationId": "1111111111111111",
+      "properties": {},
+      "registered": true,
+      "tags": [],
+      "type": "DEVICE",
+      "updated": "2023-03-27T09:08:28Z",
+      "uplinkMetrics": {
+        "uplinkId": "d49fd625-4e09-4dba-b8c9-e7390c98e744",
+        "deviceId": "A1B2C3D4E5F60001",
+        "uplinkSize": 364,
+        "timestamp": "2026-08-20T15:00:18Z",
+        "port": 2,
+        "frameCountUp": 88449,
+        "frameCountDown": 2712,
+        "rssi": -69.0,
+        "snr": 13.25,
+        "sf": 7,
+        "txPower": 2.0,
+        "numberOfGateways": 2,
+        "esp": -69.2,
+        "sqi": 3,
+        "signalQuality": "GOOD",
+        "id": "0293268877b09633"
+      },
+      "workspaceId": "2222222222222222"
+    }
+  ],
+  "totalElements": 5,
+  "totalPages": 1,
+  "last": true,
+  "first": true,
+  "number": 0,
+  "size": 100,
+  "numberOfElements": 5,
+  "empty": false
+}
