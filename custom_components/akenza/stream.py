@@ -140,6 +140,8 @@ class AkenzaStream:
                     return
                 _LOGGER.debug("WebSocket handshake failed: %s", err)
             except asyncio.CancelledError:
+                # task cancelled by Home Assistant shutdown / entry unload
+                self._stopping = True
                 raise
             except (aiohttp.ClientError, TimeoutError, OSError, ValueError) as err:
                 _LOGGER.debug("WebSocket connection error: %s", err)
