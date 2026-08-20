@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, PORTAL_DEVICE_URL_TEMPLATE, PORTAL_ORG_URL_TEMPLATE
+from .const import AREA_FIELD_NAMES, DOMAIN, PORTAL_DEVICE_URL_TEMPLATE, PORTAL_ORG_URL_TEMPLATE
 from .coordinator import HUB_KEY, AkenzaCoordinator
 from .models import DeviceState
 
@@ -52,7 +52,16 @@ def build_device_info(state: DeviceState, coordinator: AkenzaCoordinator) -> Dev
             device_id=device.id,
         ),
         via_device=hub_identifier(coordinator),
+        suggested_area=suggested_area(state),
     )
+
+
+def suggested_area(state: DeviceState) -> str | None:
+    """Area suggestion from a custom field such as Room / Space / Floor."""
+    for name, value in state.device.custom_fields.items():
+        if name.lower() in AREA_FIELD_NAMES and isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
 
 
 class AkenzaBaseEntity(CoordinatorEntity[AkenzaCoordinator]):

@@ -24,6 +24,7 @@ from .api import (
     AkenzaNotFoundError,
 )
 from .const import (
+    CONF_DATA_KEYS_ONLY,
     CONF_DEFAULT_TOPIC_ONLY,
     CONF_DEVICE_IMAGES,
     CONF_ENABLE_HIDDEN_KPIS,
@@ -79,6 +80,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self.default_topic_only: bool = bool(entry.options.get(CONF_DEFAULT_TOPIC_ONLY, False))
         self.enable_hidden_kpis: bool = bool(entry.options.get(CONF_ENABLE_HIDDEN_KPIS, False))
         self.device_images: bool = bool(entry.options.get(CONF_DEVICE_IMAGES, True))
+        self.data_keys_only: bool = bool(entry.options.get(CONF_DATA_KEYS_ONLY, False))
         self.poll_interval = timedelta(
             minutes=int(entry.options.get(CONF_POLL_INTERVAL) or DEFAULT_POLL_INTERVAL)
         )
@@ -368,7 +370,9 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
                 self._notify(sample.device_id)
             return
         new_descriptor = False
-        for key, value in flatten_sample_data(sample.data).items():
+        flat = flatten_sample_data(sample.data)
+        state.last_sample_keys[sample.topic] = frozenset(flat)
+        for key, value in flat.items():
             key_id = f"{sample.topic}_{key}"
             if key_id not in state.descriptors:
                 descriptor = infer_descriptor(sample.topic, key, value)
@@ -431,6 +435,12 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
             listener()
 
     # --- helpers for platforms ------------------------------------------
+
+    def entity_wanted(self, state: DeviceState, descriptor: DataPointDescriptor) -> bool:
+        """Whether an entity should exist for this data point given the options."""
+        if self.default_topic_only and descriptor.topic != DEFAULT_TOPIC:
+            return False
+        return not (self.data_keys_only and descriptor.key_id not in state.values)
 
     @property
     def stream_connected(self) -> bool:

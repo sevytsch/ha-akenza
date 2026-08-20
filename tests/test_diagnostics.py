@@ -18,6 +18,6 @@ async def test_diagnostics_redacts_secrets(
     assert diag["entry"]["data"]["api_key"] == "**REDACTED**"
     assert "secret-key" not in str(diag)
     assert "A1B2C3D4E5F60001" not in str(diag)
-    assert len(diag["devices"]) == 5
+    assert len(diag["devices"]) == 6
     kitchen = next(d for d in diag["devices"] if d["device"]["name"] == "Kitchen")
     assert kitchen["values"]["default_temperature"] == 27.8

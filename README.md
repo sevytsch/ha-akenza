@@ -42,6 +42,7 @@ One config entry corresponds to one akenza organization. Add the integration aga
 | Only import the default topic | Skip secondary topics (lifecycle, configuration, …). Useful for very large organizations. |
 | Include data keys hidden from KPIs | Create *enabled* entities for keys the device type marks `hideFromKpis` (otherwise they are created disabled). |
 | Product images | Create an `image` entity per device with the device-type product picture (default on). |
+| Only data keys with data | Create entities only for data keys that have delivered a value; schema-only keys appear with their first sample (default off). |
 | Metadata refresh interval | How often the device list, online state and signal metrics are refreshed (default 15 min). Measurements are live regardless. |
 | API URL | Advanced: base URL of a private / regional akenza deployment (default `https://api.akenza.io`). |
 
@@ -59,10 +60,32 @@ For every akenza device:
 | `sensor` **Battery** | battery level reported in uplink metrics (diagnostic) |
 | `sensor` **akenza ID** | the akenza device id (diagnostic); the physical device id (e.g. DevEUI) is shown as the device's serial number |
 | `image` **Product image** | product picture of the device type (diagnostic, can be disabled in the options) |
+| `device_tracker` **Position** | for every topic with `latitude`/`longitude` keys (GPS trackers) |
+| `event` per button key | fires `pressed` on every new sample where a button key (`button1`, `key2`, `buttonEvent`, …) is active |
 
 Per organization a hub device exposes **Live stream** (WebSocket connected) and **Devices** (device count, with seeding progress as attributes).
 
 Data keys on the topics `configuration`, `raw_payload`, `fuota` and `system.*` are created **disabled** by default; enable them in the entity settings if needed. Unit, device class and state class come from the akenza `measurementType` (e.g. `akenza/environment/temperature/celsius` → temperature in °C) with a fallback on the unit and the key name. Each entity exposes `topic`, `data_key`, `measurement_type` and `last_sample` as attributes.
+
+## Downlinks
+
+The service **`akenza.send_downlink`** queues a downlink for a device (target: the Home Assistant device):
+
+```yaml
+action: akenza.send_downlink
+target:
+  device_id: 1234567890abcdef1234567890abcdef
+data:
+  payload: {"targetTemperature": 21}   # encoded by the device type's downlink script
+  port: 1
+  confirmed: false
+```
+
+Use `payload_hex: "0e14"` instead of `payload` for a raw LoRaWAN downlink; MQTT devices additionally need `topic`. The API key needs downlink permission.
+
+## Areas and custom fields
+
+If a device has a custom field named *Room*, *Space*, *Area*, *Location*, *Zone* or *Floor*, its value is suggested as the Home Assistant area when the device is created. All custom fields and tags are available as attributes of the **akenza ID** sensor.
 
 ## How it works
 

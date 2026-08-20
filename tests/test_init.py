@@ -80,7 +80,7 @@ async def test_setup_creates_devices_and_entities(
     stream = hass.states.get("binary_sensor.test_org_live_stream")
     assert stream is not None and stream.state == "off"
     count = hass.states.get("sensor.test_org_devices")
-    assert count is not None and count.state == "5"
+    assert count is not None and count.state == "6"
 
 
 async def test_live_sample_updates_only_that_device(

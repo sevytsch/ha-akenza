@@ -31,6 +31,7 @@ KITCHEN = "020784546ed5d03b"
 GARDEN = "02bf028baeb96713"
 CAT = "025d93694916aadb"
 SILENT = "02ba658a48d50849"
+TRACKER = "02aabbccddeeff00"
 VALVE = "0293268877b09633"
 ERS_ECO_TYPE = "331b994e3d4d295b"
 
@@ -100,6 +101,20 @@ CAT_SAMPLES = [
         "data": {"atHome": 0, "batteryLevel": 37},
     }
 ]
+TRACKER_SAMPLES = [
+    {
+        "timestamp": "2026-08-20T15:00:00.000Z",
+        "deviceId": TRACKER,
+        "topic": "position",
+        "data": {"latitude": 47.41, "longitude": 8.53, "speedKmph": 3, "accuracy": 12},
+    },
+    {
+        "timestamp": "2026-08-20T15:00:00.000Z",
+        "deviceId": TRACKER,
+        "topic": "default",
+        "data": {"button1": False, "temperature": 20.5},
+    },
+]
 VALVE_SAMPLES = [
     {
         "timestamp": "2026-08-20T15:16:38.534Z",
@@ -162,6 +177,9 @@ def mock_api(aioclient_mock: AiohttpClientMocker, *, assets: dict[str, Any] | No
     aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/infer-schema", json={})
     aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/query", json=VALVE_SAMPLES)
     aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/query/topics", json=["default"])
+    aioclient_mock.get(f"{BASE}/v3/devices/{TRACKER}/infer-schema", json={})
+    aioclient_mock.get(f"{BASE}/v3/devices/{TRACKER}/query", json=TRACKER_SAMPLES)
+    aioclient_mock.get(f"{BASE}/v3/devices/{TRACKER}/query/topics", json=["position", "default"])
     aioclient_mock.get(f"{BASE}/v3/devices/{GARDEN}/query/topics", json=[])
     aioclient_mock.get(f"{BASE}/v3/devices/{SILENT}/query/topics", json=[])
 

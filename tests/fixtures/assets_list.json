@@ -291,14 +291,64 @@
         "id": "0293268877b09633"
       },
       "workspaceId": "2222222222222222"
+    },
+    {
+      "id": "02aabbccddeeff00",
+      "name": "Tracker",
+      "description": null,
+      "type": "DEVICE",
+      "workspaceId": "2222222222222222",
+      "organizationId": "1111111111111111",
+      "integration": null,
+      "customFields": [
+        {
+          "STRING": "Garage",
+          "fieldMetaId": "69",
+          "meta": {
+            "id": "69",
+            "name": "Room",
+            "type": "STRING"
+          }
+        },
+        {
+          "NUMBER": 2,
+          "fieldMetaId": "70",
+          "meta": {
+            "id": "70",
+            "name": "Floor",
+            "type": "NUMBER"
+          }
+        }
+      ],
+      "tags": [],
+      "uplinkMetrics": null,
+      "created": "2026-01-01T00:00:00Z",
+      "updated": "2026-01-01T00:00:00Z",
+      "deviceId": "TRACKER0001",
+      "properties": {},
+      "connectivity": "LORA",
+      "onlineTimeout": 86400,
+      "online": true,
+      "onlineState": "ONLINE",
+      "registered": true,
+      "dataFlowId": "08",
+      "dataFlow": {
+        "id": "08",
+        "name": "flow",
+        "deviceType": null,
+        "deviceConnector": {
+          "id": "07",
+          "name": "c"
+        }
+      }
     }
   ],
-  "totalElements": 5,
+  "totalElements": 6,
   "totalPages": 1,
   "last": true,
   "first": true,
   "number": 0,
   "size": 100,
-  "numberOfElements": 5,
+  "numberOfElements": 6,
   "empty": false
 }

@@ -30,7 +30,7 @@ async def test_pagination_and_models(hass: HomeAssistant, aioclient_mock: Aiohtt
 
     aioclient_mock.post(f"{BASE}/v3/assets/list", side_effect=handler)
     devices = await client.async_list_devices(ORG_ID, ["w"])
-    assert len(devices) == 6
+    assert len(devices) == 7
     assert devices[-1].name == "Extra"
     assert not hasattr(devices[-1], "loraProperties")
     assert aioclient_mock.mock_calls[0][2] == {"organizationId": ORG_ID, "workspaceIds": ["w"]}

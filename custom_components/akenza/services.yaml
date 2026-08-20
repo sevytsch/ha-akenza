@@ -1,0 +1,28 @@
+send_downlink:
+  target:
+    device:
+      integration: akenza
+  fields:
+    payload:
+      example: '{"targetTemperature": 21}'
+      selector:
+        object:
+    payload_hex:
+      example: "0e14"
+      selector:
+        text:
+    port:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 223
+          mode: box
+    confirmed:
+      default: false
+      selector:
+        boolean:
+    topic:
+      example: "downlink"
+      selector:
+        text:

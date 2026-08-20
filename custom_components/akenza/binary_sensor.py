@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DEFAULT_TOPIC, DOMAIN
+from .const import DOMAIN
 from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
 from .entity import AkenzaDeviceEntity, AkenzaHubEntity
 from .mapping import binary_spec
@@ -39,7 +39,7 @@ async def async_setup_entry(
             for descriptor in state.descriptors.values():
                 if descriptor.value_type is not ValueType.BOOLEAN:
                     continue
-                if coordinator.default_topic_only and descriptor.topic != DEFAULT_TOPIC:
+                if not coordinator.entity_wanted(state, descriptor):
                     continue
                 uid = f"{DOMAIN}_{device_id}_{descriptor.key_id}"
                 if uid in known:

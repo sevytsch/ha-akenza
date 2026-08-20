@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 – 2026-08-20
+
+* **Device tracker** entities for topics that carry `latitude`/`longitude` (GPS trackers).
+* **Event** entities (`pressed`) for button data keys (e.g. `button1`, `key2`, `buttonEvent`), in addition to the existing sensors.
+* **Service `akenza.send_downlink`**: queue LoRaWAN or MQTT downlinks (JSON payload for the device type's encoder, or raw hex).
+* Option **Only data keys with data**: skip schema-only keys until they deliver a value.
+* Custom fields are read; a field named Room / Space / Area / Location / Zone / Floor becomes the suggested area, all custom fields and tags are attributes of the *akenza ID* sensor.
+
 ## 0.2.5 – 2026-08-20
 
 * Also cap restored string values at 255 characters (errors during startup).

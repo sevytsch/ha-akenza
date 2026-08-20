@@ -21,14 +21,16 @@
           "tag_ids": "Tags",
           "default_topic_only": "Only import the default topic",
           "enable_hidden_kpis": "Include data keys hidden from KPIs",
-          "device_images": "Product images"
+          "device_images": "Product images",
+          "data_keys_only": "Only data keys with data"
         },
         "data_description": {
           "workspace_ids": "Devices from these workspaces are imported.",
           "tag_ids": "Optional: only import devices that carry at least one of these tags.",
           "default_topic_only": "Skip lifecycle, configuration and other secondary topics.",
           "enable_hidden_kpis": "Create entities for data keys the device type marks as hidden (created disabled otherwise).",
-          "device_images": "Add an image entity per device showing the product picture of its akenza device type."
+          "device_images": "Add an image entity per device showing the product picture of its akenza device type.",
+          "data_keys_only": "Create entities only for data keys that have actually delivered a value (schema-only keys are skipped until their first sample)."
         }
       },
       "reauth_confirm": {
@@ -80,7 +82,8 @@
           "default_topic_only": "[%key:component::akenza::config::step::workspaces::data::default_topic_only%]",
           "enable_hidden_kpis": "[%key:component::akenza::config::step::workspaces::data::enable_hidden_kpis%]",
           "poll_interval_minutes": "Metadata refresh interval",
-          "device_images": "[%key:component::akenza::config::step::workspaces::data::device_images%]"
+          "device_images": "[%key:component::akenza::config::step::workspaces::data::device_images%]",
+          "data_keys_only": "[%key:component::akenza::config::step::workspaces::data::data_keys_only%]"
         },
         "data_description": {
           "workspace_ids": "[%key:component::akenza::config::step::workspaces::data_description::workspace_ids%]",
@@ -88,7 +91,8 @@
           "default_topic_only": "[%key:component::akenza::config::step::workspaces::data_description::default_topic_only%]",
           "enable_hidden_kpis": "[%key:component::akenza::config::step::workspaces::data_description::enable_hidden_kpis%]",
           "poll_interval_minutes": "How often the device list, online state and signal metrics are refreshed. Measurements arrive live regardless.",
-          "device_images": "[%key:component::akenza::config::step::workspaces::data_description::device_images%]"
+          "device_images": "[%key:component::akenza::config::step::workspaces::data_description::device_images%]",
+          "data_keys_only": "[%key:component::akenza::config::step::workspaces::data_description::data_keys_only%]"
         }
       }
     },
@@ -136,6 +140,62 @@
       "product_image": {
         "name": "Product image"
       }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Position"
+      },
+      "position_topic": {
+        "name": "Position ({topic})"
+      }
+    }
+  },
+  "services": {
+    "send_downlink": {
+      "name": "Send downlink",
+      "description": "Queue a downlink for an akenza device. Either a JSON payload (encoded by the device type's downlink script) or a raw hex payload.",
+      "fields": {
+        "payload": {
+          "name": "Payload",
+          "description": "JSON object passed to the device type's downlink encoder."
+        },
+        "payload_hex": {
+          "name": "Raw payload (hex)",
+          "description": "Hexadecimal payload sent as-is (raw downlink)."
+        },
+        "port": {
+          "name": "Port",
+          "description": "LoRaWAN port."
+        },
+        "confirmed": {
+          "name": "Confirmed",
+          "description": "Request a confirmed LoRaWAN downlink."
+        },
+        "topic": {
+          "name": "MQTT topic",
+          "description": "Downlink topic (MQTT devices only)."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "The selected device is not an akenza device."
+    },
+    "payload_required": {
+      "message": "Provide either a payload or a raw hex payload."
+    },
+    "topic_required": {
+      "message": "MQTT devices need a downlink topic."
+    },
+    "downlink_unsupported": {
+      "message": "Downlinks are not supported for {connectivity} devices."
+    },
+    "downlink_forbidden": {
+      "message": "The API key is not allowed to send downlinks."
+    },
+    "downlink_failed": {
+      "message": "Sending the downlink failed: {error}"
     }
   }
 }

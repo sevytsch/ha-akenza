@@ -41,6 +41,7 @@ class AkenzaMetaSensorDescription(SensorEntityDescription):
 
     value_fn: Callable[[DeviceState], StateType | datetime]
     exists_fn: Callable[[DeviceState], bool] = lambda _: True
+    attributes_fn: Callable[[DeviceState], dict[str, Any]] | None = None
 
 
 def _uplink(state: DeviceState) -> Any:
@@ -54,6 +55,13 @@ META_SENSORS: tuple[AkenzaMetaSensorDescription, ...] = (
         icon="mdi:identifier",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda s: s.device.id,
+        attributes_fn=lambda s: {
+            "device_id": s.device.device_id,
+            "workspace_id": s.device.workspace_id,
+            "connectivity": s.device.connectivity,
+            "tags": list(s.device.tag_names),
+            "custom_fields": dict(s.device.custom_fields),
+        },
     ),
     AkenzaMetaSensorDescription(
         key="last_seen",
@@ -134,7 +142,7 @@ async def async_setup_entry(
             for descriptor in state.descriptors.values():
                 if descriptor.value_type is ValueType.BOOLEAN:
                     continue
-                if coordinator.default_topic_only and descriptor.topic != DEFAULT_TOPIC:
+                if not coordinator.entity_wanted(state, descriptor):
                     continue
                 uid = f"{DOMAIN}_{device_id}_{descriptor.key_id}"
                 if uid in known:
@@ -291,6 +299,14 @@ class AkenzaMetaSensor(AkenzaDeviceEntity, SensorEntity):
             return self.entity_description.value_fn(state)
         except AttributeError:
             return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Optional attributes from the description."""
+        state = self.state_data
+        if state is None or self.entity_description.attributes_fn is None:
+            return None
+        return self.entity_description.attributes_fn(state)
 
 
 class AkenzaDeviceCountSensor(AkenzaHubEntity, SensorEntity):

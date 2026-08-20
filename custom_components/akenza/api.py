@@ -239,6 +239,10 @@ class AkenzaApiClient:
             return {}
         return {str(k): v for k, v in data.items() if isinstance(v, dict)}
 
+    async def async_send_downlink(self, device_id: str, body: dict[str, Any]) -> Any:
+        """Queue a downlink for a device (LoRaWAN or MQTT body as documented by akenza)."""
+        return await self._request("POST", f"/v3/devices/{device_id}/downlink", json=body)
+
     async def async_get_topics(self, device_id: str) -> list[str]:
         """Return the topics that hold stored data for a device."""
         data = await self._request("GET", f"/v3/devices/{device_id}/query/topics")

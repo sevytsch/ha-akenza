@@ -15,6 +15,7 @@ CONF_DEFAULT_TOPIC_ONLY: Final = "default_topic_only"
 CONF_ENABLE_HIDDEN_KPIS: Final = "enable_hidden_kpis"
 CONF_POLL_INTERVAL: Final = "poll_interval_minutes"
 CONF_DEVICE_IMAGES: Final = "device_images"
+CONF_DATA_KEYS_ONLY: Final = "data_keys_only"
 
 DEFAULT_BASE_URL: Final = "https://api.akenza.io"
 DEFAULT_POLL_INTERVAL: Final = 15
@@ -54,3 +55,18 @@ DEFAULT_TOPIC: Final = "default"
 MAX_BACKFILL_TOPICS: Final = 10
 
 STORAGE_VERSION: Final = 1
+
+# custom field names (lower-case) that are used as area suggestion
+AREA_FIELD_NAMES: Final = frozenset({"room", "space", "area", "location", "zone", "raum", "floor"})
+# data keys that form a GPS position
+LATITUDE_KEYS: Final = ("latitude", "lat")
+LONGITUDE_KEYS: Final = ("longitude", "lng", "lon", "long")
+GPS_ACCURACY_KEYS: Final = ("accuracy", "gpsAccuracy", "hdop")
+
+SERVICE_SEND_DOWNLINK: Final = "send_downlink"
+ATTR_PAYLOAD: Final = "payload"
+ATTR_PAYLOAD_HEX: Final = "payload_hex"
+ATTR_PORT: Final = "port"
+ATTR_CONFIRMED: Final = "confirmed"
+ATTR_TOPIC: Final = "topic"
+EVENT_TYPE_PRESSED: Final = "pressed"

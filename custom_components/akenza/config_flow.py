@@ -39,6 +39,7 @@ from .api import (
 )
 from .const import (
     CONF_BASE_URL,
+    CONF_DATA_KEYS_ONLY,
     CONF_DEFAULT_TOPIC_ONLY,
     CONF_DEVICE_IMAGES,
     CONF_ENABLE_HIDDEN_KPIS,
@@ -146,6 +147,9 @@ def _selection_schema(
     schema[vol.Optional(CONF_DEVICE_IMAGES, default=bool(current.get(CONF_DEVICE_IMAGES, True)))] = (
         BooleanSelector()
     )
+    schema[
+        vol.Optional(CONF_DATA_KEYS_ONLY, default=bool(current.get(CONF_DATA_KEYS_ONLY, False)))
+    ] = BooleanSelector()
     if include_poll:
         schema[
             vol.Optional(
@@ -171,6 +175,7 @@ def _clean_options(user_input: Mapping[str, Any]) -> dict[str, Any]:
         CONF_DEFAULT_TOPIC_ONLY: bool(user_input.get(CONF_DEFAULT_TOPIC_ONLY, False)),
         CONF_ENABLE_HIDDEN_KPIS: bool(user_input.get(CONF_ENABLE_HIDDEN_KPIS, False)),
         CONF_DEVICE_IMAGES: bool(user_input.get(CONF_DEVICE_IMAGES, True)),
+        CONF_DATA_KEYS_ONLY: bool(user_input.get(CONF_DATA_KEYS_ONLY, False)),
     }
     if CONF_POLL_INTERVAL in user_input:
         options[CONF_POLL_INTERVAL] = int(user_input[CONF_POLL_INTERVAL])

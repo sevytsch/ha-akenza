@@ -21,14 +21,16 @@
           "tag_ids": "Tags",
           "default_topic_only": "Nur das Default-Topic importieren",
           "enable_hidden_kpis": "Versteckte Datenpunkte (hideFromKpis) einbeziehen",
-          "device_images": "Produktbilder"
+          "device_images": "Produktbilder",
+          "data_keys_only": "Nur Datenpunkte mit Daten"
         },
         "data_description": {
           "workspace_ids": "Geräte aus diesen Workspaces werden importiert.",
           "tag_ids": "Optional: nur Geräte importieren, die mindestens einen dieser Tags tragen.",
           "default_topic_only": "Lifecycle-, Konfigurations- und andere Neben-Topics überspringen.",
           "enable_hidden_kpis": "Entitäten auch für Datenpunkte anlegen, die der Device-Type als versteckt markiert (sonst deaktiviert angelegt).",
-          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen."
+          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen.",
+          "data_keys_only": "Entitäten nur für Datenpunkte anlegen, die tatsächlich schon einen Wert geliefert haben (reine Schema-Keys erst beim ersten Sample)."
         }
       },
       "reauth_confirm": {
@@ -80,7 +82,8 @@
           "default_topic_only": "Nur das Default-Topic importieren",
           "enable_hidden_kpis": "Versteckte Datenpunkte (hideFromKpis) einbeziehen",
           "poll_interval_minutes": "Intervall für Metadaten-Aktualisierung",
-          "device_images": "Produktbilder"
+          "device_images": "Produktbilder",
+          "data_keys_only": "Nur Datenpunkte mit Daten"
         },
         "data_description": {
           "workspace_ids": "Geräte aus diesen Workspaces werden importiert.",
@@ -88,7 +91,8 @@
           "default_topic_only": "Lifecycle-, Konfigurations- und andere Neben-Topics überspringen.",
           "enable_hidden_kpis": "Entitäten auch für Datenpunkte anlegen, die der Device-Type als versteckt markiert (sonst deaktiviert angelegt).",
           "poll_interval_minutes": "Wie oft Geräteliste, Online-Status und Signalwerte aktualisiert werden. Messwerte kommen unabhängig davon live.",
-          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen."
+          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen.",
+          "data_keys_only": "Entitäten nur für Datenpunkte anlegen, die tatsächlich schon einen Wert geliefert haben (reine Schema-Keys erst beim ersten Sample)."
         }
       }
     },
@@ -136,6 +140,62 @@
       "product_image": {
         "name": "Produktbild"
       }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Position"
+      },
+      "position_topic": {
+        "name": "Position ({topic})"
+      }
+    }
+  },
+  "services": {
+    "send_downlink": {
+      "name": "Downlink senden",
+      "description": "Downlink für ein akenza-Gerät einreihen. Entweder JSON-Payload (wird vom Downlink-Script des Device-Types codiert) oder roher Hex-Payload.",
+      "fields": {
+        "payload": {
+          "name": "Payload",
+          "description": "JSON-Objekt für den Downlink-Encoder des Device-Types."
+        },
+        "payload_hex": {
+          "name": "Roh-Payload (Hex)",
+          "description": "Hexadezimaler Payload, der unverändert gesendet wird (Raw-Downlink)."
+        },
+        "port": {
+          "name": "Port",
+          "description": "LoRaWAN-Port."
+        },
+        "confirmed": {
+          "name": "Bestätigt",
+          "description": "Bestätigten LoRaWAN-Downlink anfordern."
+        },
+        "topic": {
+          "name": "MQTT-Topic",
+          "description": "Downlink-Topic (nur MQTT-Geräte)."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "device_not_found": {
+      "message": "Das gewählte Gerät ist kein akenza-Gerät."
+    },
+    "payload_required": {
+      "message": "Entweder Payload oder Roh-Payload (Hex) angeben."
+    },
+    "topic_required": {
+      "message": "MQTT-Geräte brauchen ein Downlink-Topic."
+    },
+    "downlink_unsupported": {
+      "message": "Downlinks werden für {connectivity}-Geräte nicht unterstützt."
+    },
+    "downlink_forbidden": {
+      "message": "Der API-Key darf keine Downlinks senden."
+    },
+    "downlink_failed": {
+      "message": "Downlink konnte nicht gesendet werden: {error}"
     }
   }
 }

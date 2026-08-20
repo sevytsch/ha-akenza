@@ -200,6 +200,7 @@ class AkenzaDevice:
     device_type_id: str | None = None
     device_type_name: str | None = None
     uplink_metrics: UplinkMetrics | None = None
+    custom_fields: dict[str, str | float] = field(default_factory=dict)
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> AkenzaDevice:
@@ -207,6 +208,23 @@ class AkenzaDevice:
         data_flow = data.get("dataFlow") or {}
         device_type = data_flow.get("deviceType") or {}
         tags = [t for t in (data.get("tags") or []) if isinstance(t, dict)]
+        custom_fields: dict[str, str | float] = {}
+        for entry in data.get("customFields") or []:
+            if not isinstance(entry, dict):
+                continue
+            meta = entry.get("meta") or {}
+            name = entry.get("fieldMetaName") or meta.get("name")
+            if not name:
+                continue
+            value: Any = None
+            for key in ("STRING", "NUMBER", "DATE"):
+                if entry.get(key) not in (None, ""):
+                    value = entry[key]
+                    break
+            if isinstance(value, str):
+                custom_fields[str(name)] = value
+            elif isinstance(value, int | float) and not isinstance(value, bool):
+                custom_fields[str(name)] = float(value)
         return cls(
             id=str(data["id"]),
             name=str(data.get("name") or data["id"]),
@@ -222,6 +240,7 @@ class AkenzaDevice:
             device_type_id=str(device_type["id"]) if device_type.get("id") else None,
             device_type_name=device_type.get("name") or None,
             uplink_metrics=UplinkMetrics.from_api(data.get("uplinkMetrics")),
+            custom_fields=custom_fields,
         )
 
 
@@ -263,6 +282,7 @@ class DeviceState:
     descriptors: dict[str, DataPointDescriptor] = field(default_factory=dict)
     values: dict[str, Any] = field(default_factory=dict)
     topic_timestamps: dict[str, datetime] = field(default_factory=dict)
+    last_sample_keys: dict[str, frozenset[str]] = field(default_factory=dict)
     last_seen: datetime | None = None
     seeded: bool = False
 
