@@ -239,6 +239,25 @@ class AkenzaApiClient:
             return {}
         return {str(k): v for k, v in data.items() if isinstance(v, dict)}
 
+    async def async_get_topics(self, device_id: str) -> list[str]:
+        """Return the topics that hold stored data for a device."""
+        data = await self._request("GET", f"/v3/devices/{device_id}/query/topics")
+        return [str(t) for t in data] if isinstance(data, list) else []
+
+    async def async_query_topic_latest(self, device_id: str, topic: str) -> Sample | None:
+        """Return the newest sample of one topic (None if the topic has no data)."""
+        try:
+            data = await self._request(
+                "GET",
+                f"/v3/devices/{device_id}/query",
+                params={"topic": topic, "limit": 1, "skip": 0},
+            )
+        except AkenzaNotFoundError:
+            return None
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            return Sample.from_api(data[0], device_id)
+        return None
+
     async def async_query_latest(self, device_id: str, limit: int) -> list[Sample]:
         """Return the newest samples across all topics (newest first)."""
         try:

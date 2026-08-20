@@ -33,7 +33,7 @@ PAGE_SIZE: Final = 100
 RATE_LIMIT_RATE: Final = 8.0
 RATE_LIMIT_BURST: Final = 20
 SEED_SAMPLE_LIMIT: Final = 25
-SEED_CONCURRENCY: Final = 4
+SEED_CONCURRENCY: Final = 6
 SEED_NOTIFY_EVERY: Final = 25
 
 # WebSocket stream
@@ -51,5 +51,6 @@ DIAGNOSTIC_TOPICS: Final = frozenset({"lifecycle", "configuration", "raw_payload
 DISABLED_TOPICS: Final = frozenset({"configuration", "raw_payload", "fuota"})
 DIAGNOSTIC_TOPIC_PREFIXES: Final = ("system", "network", "debug", "diagnostic")
 DEFAULT_TOPIC: Final = "default"
+MAX_BACKFILL_TOPICS: Final = 10
 
 STORAGE_VERSION: Final = 1

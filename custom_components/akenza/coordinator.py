@@ -34,7 +34,10 @@ from .const import (
     CONF_WORKSPACE_IDS,
     DEFAULT_POLL_INTERVAL,
     DEFAULT_TOPIC,
+    DIAGNOSTIC_TOPIC_PREFIXES,
+    DISABLED_TOPICS,
     DOMAIN,
+    MAX_BACKFILL_TOPICS,
     RESEED_DEBOUNCE,
     SEED_CONCURRENCY,
     SEED_NOTIFY_EVERY,
@@ -307,10 +310,42 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
                 continue
             seen_topics.add(sample.topic)
             self._apply_sample(sample, notify=False)
+        await self._async_backfill_topics(device_id, seen_topics, had_samples=bool(samples))
         state.seeded = True
         self.seeded_devices += 1
         self.cache.descriptors[device_id] = dict(state.descriptors)
         return True
+
+    async def _async_backfill_topics(
+        self, device_id: str, seen_topics: set[str], *, had_samples: bool
+    ) -> None:
+        """Fetch the newest sample of declared topics the recent-sample window missed."""
+        state = self.data.get(device_id)
+        if state is None or not had_samples:
+            return
+        wanted = {
+            d.topic
+            for d in state.descriptors.values()
+            if d.topic not in seen_topics
+            and d.topic not in DISABLED_TOPICS
+            and not d.topic.startswith(DIAGNOSTIC_TOPIC_PREFIXES)
+            and not (self.default_topic_only and d.topic != DEFAULT_TOPIC)
+        }
+        if not wanted:
+            return
+        try:
+            available = set(await self.client.async_get_topics(device_id))
+        except (AkenzaForbiddenError, AkenzaNotFoundError, AkenzaConnectionError) as err:
+            _LOGGER.debug("topics for %s failed: %s", device_id, err)
+            return
+        for topic in sorted(wanted & available)[:MAX_BACKFILL_TOPICS]:
+            try:
+                sample = await self.client.async_query_topic_latest(device_id, topic)
+            except (AkenzaForbiddenError, AkenzaConnectionError) as err:
+                _LOGGER.debug("backfill %s/%s failed: %s", device_id, topic, err)
+                continue
+            if sample is not None:
+                self._apply_sample(sample, notify=False)
 
     # --- live push -------------------------------------------------------
 

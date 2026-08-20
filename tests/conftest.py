@@ -75,12 +75,6 @@ KITCHEN_SAMPLES = [
         "data": {"light": 93, "temperature": 27.8, "humidity": 50},
     },
     {
-        "timestamp": "2026-08-20T14:58:38.275Z",
-        "deviceId": KITCHEN,
-        "topic": "lifecycle",
-        "data": {"batteryVoltage": 3.291, "batteryLevel": 60.0},
-    },
-    {
         "timestamp": "2026-08-20T14:48:36.445Z",
         "deviceId": KITCHEN,
         "topic": "default",
@@ -138,9 +132,27 @@ def mock_api(aioclient_mock: AiohttpClientMocker, *, assets: dict[str, Any] | No
     aioclient_mock.get(f"{BASE}/v3/device-types/337096c7a576c35e", status=404, json={"message": "nf"})
     aioclient_mock.get(f"{BASE}/v3/device-types/3372f14fe98432c0", status=403, json={"message": "no"})
     aioclient_mock.get(f"{BASE}/v3/devices/{KITCHEN}/infer-schema", json={})
-    aioclient_mock.get(f"{BASE}/v3/devices/{KITCHEN}/query", json=KITCHEN_SAMPLES)
+    aioclient_mock.get(
+        f"{BASE}/v3/devices/{KITCHEN}/query",
+        params={"topic": "*", "limit": "25", "skip": "0"},
+        json=KITCHEN_SAMPLES,
+    )
+    aioclient_mock.get(f"{BASE}/v3/devices/{KITCHEN}/query/topics", json=["default", "lifecycle"])
+    aioclient_mock.get(
+        f"{BASE}/v3/devices/{KITCHEN}/query",
+        params={"topic": "lifecycle", "limit": "1", "skip": "0"},
+        json=[
+            {
+                "timestamp": "2026-08-20T14:58:38.275Z",
+                "deviceId": KITCHEN,
+                "topic": "lifecycle",
+                "data": {"batteryVoltage": 3.291, "batteryLevel": 60.0},
+            }
+        ],
+    )
     aioclient_mock.get(f"{BASE}/v3/devices/{CAT}/infer-schema", json=CAT_INFER)
     aioclient_mock.get(f"{BASE}/v3/devices/{CAT}/query", json=CAT_SAMPLES)
+    aioclient_mock.get(f"{BASE}/v3/devices/{CAT}/query/topics", json=["cat"])
     aioclient_mock.get(f"{BASE}/v3/devices/{GARDEN}/infer-schema", json={})
     aioclient_mock.get(f"{BASE}/v3/devices/{GARDEN}/query", json=[])
     aioclient_mock.get(f"{BASE}/v3/devices/{SILENT}/infer-schema", json={})
@@ -149,6 +161,9 @@ def mock_api(aioclient_mock: AiohttpClientMocker, *, assets: dict[str, Any] | No
     )
     aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/infer-schema", json={})
     aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/query", json=VALVE_SAMPLES)
+    aioclient_mock.get(f"{BASE}/v3/devices/{VALVE}/query/topics", json=["default"])
+    aioclient_mock.get(f"{BASE}/v3/devices/{GARDEN}/query/topics", json=[])
+    aioclient_mock.get(f"{BASE}/v3/devices/{SILENT}/query/topics", json=[])
 
 
 @pytest.fixture

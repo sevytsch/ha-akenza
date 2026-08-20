@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 – 2026-08-20
+
+* Seeding backfills topics that the recent-sample window missed (devices with several topics), using `/query/topics` plus one targeted query per topic.
+* Seeding concurrency raised to 6.
+
 ## 0.2.0 – 2026-08-20
 
 * New `image` entity per device showing the product picture of its device type (option *Product images*, on by default).

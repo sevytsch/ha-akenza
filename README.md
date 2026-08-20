@@ -66,7 +66,7 @@ Data keys on the topics `configuration`, `raw_payload`, `fuota` and `system.*` a
 ## How it works
 
 * **Discovery** uses the REST API (`/v3/organizations`, `/v3/workspace-access`, `/v3/workspaces`, `/v3/assets/list`, `/v3/device-types/{id}`).
-* **Seeding** runs in the background after setup: for each device the inferred schema (`/v3/devices/{id}/infer-schema`) and the latest samples are fetched so entities have a value immediately. Device types and schemas are cached locally, so restarts are fast.
+* **Seeding** runs in the background after setup: for each device the inferred schema (`/v3/devices/{id}/infer-schema`) and the latest samples are fetched so entities have a value immediately; declared topics missing from the recent-sample window are backfilled with one targeted query each. Device types and schemas are cached locally, so restarts are fast.
 * **Live updates** come from `wss://api.akenza.io/v3/data-streams`. The integration subscribes to every imported device on all topics, keeps the connection alive and reconnects with exponential back-off; after a reconnect the latest values are re-fetched so nothing is missed.
 * **Metadata** (new/removed devices, online state, uplink metrics) is refreshed every 15 minutes.
 * The client stays below akenza's rate limit (10 requests/s, burst 25).
