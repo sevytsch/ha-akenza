@@ -41,6 +41,7 @@ One config entry corresponds to one akenza organization. Add the integration aga
 | Workspaces / Tags | Which devices to import. Changing this reloads the integration. |
 | Only import the default topic | Skip secondary topics (lifecycle, configuration, …). Useful for very large organizations. |
 | Include data keys hidden from KPIs | Create *enabled* entities for keys the device type marks `hideFromKpis` (otherwise they are created disabled). |
+| Product images | Create an `image` entity per device with the device-type product picture (default on). |
 | Metadata refresh interval | How often the device list, online state and signal metrics are refreshed (default 15 min). Measurements are live regardless. |
 | API URL | Advanced: base URL of a private / regional akenza deployment (default `https://api.akenza.io`). |
 
@@ -56,6 +57,7 @@ For every akenza device:
 | `sensor` **Last seen** | newest uplink / sample timestamp (diagnostic) |
 | `sensor` **RSSI / SNR / Spreading factor / Gateways** | LoRaWAN uplink metrics (diagnostic, disabled by default) |
 | `sensor` **Battery** | battery level reported in uplink metrics (diagnostic) |
+| `image` **Product image** | product picture of the device type (diagnostic, can be disabled in the options) |
 
 Per organization a hub device exposes **Live stream** (WebSocket connected) and **Devices** (device count, with seeding progress as attributes).
 

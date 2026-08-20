@@ -20,13 +20,15 @@
           "workspace_ids": "Workspaces",
           "tag_ids": "Tags",
           "default_topic_only": "Only import the default topic",
-          "enable_hidden_kpis": "Include data keys hidden from KPIs"
+          "enable_hidden_kpis": "Include data keys hidden from KPIs",
+          "device_images": "Product images"
         },
         "data_description": {
           "workspace_ids": "Devices from these workspaces are imported.",
           "tag_ids": "Optional: only import devices that carry at least one of these tags.",
           "default_topic_only": "Skip lifecycle, configuration and other secondary topics.",
-          "enable_hidden_kpis": "Create entities for data keys the device type marks as hidden (created disabled otherwise)."
+          "enable_hidden_kpis": "Create entities for data keys the device type marks as hidden (created disabled otherwise).",
+          "device_images": "Add an image entity per device showing the product picture of its akenza device type."
         }
       },
       "reauth_confirm": {
@@ -77,14 +79,16 @@
           "tag_ids": "Tags",
           "default_topic_only": "Only import the default topic",
           "enable_hidden_kpis": "Include data keys hidden from KPIs",
-          "poll_interval_minutes": "Metadata refresh interval"
+          "poll_interval_minutes": "Metadata refresh interval",
+          "device_images": "Product images"
         },
         "data_description": {
           "workspace_ids": "Devices from these workspaces are imported.",
           "tag_ids": "Optional: only import devices that carry at least one of these tags.",
           "default_topic_only": "Skip lifecycle, configuration and other secondary topics.",
           "enable_hidden_kpis": "Create entities for data keys the device type marks as hidden (created disabled otherwise).",
-          "poll_interval_minutes": "How often the device list, online state and signal metrics are refreshed. Measurements arrive live regardless."
+          "poll_interval_minutes": "How often the device list, online state and signal metrics are refreshed. Measurements arrive live regardless.",
+          "device_images": "Add an image entity per device showing the product picture of its akenza device type."
         }
       }
     },
@@ -123,6 +127,11 @@
       },
       "device_count": {
         "name": "Devices"
+      }
+    },
+    "image": {
+      "product_image": {
+        "name": "Product image"
       }
     }
   }

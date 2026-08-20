@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 – 2026-08-20
+
+* New `image` entity per device showing the product picture of its device type (option *Product images*, on by default).
+
 ## 0.1.1 – 2026-08-20
 
 * Devices link directly to their page in the akenza portal.

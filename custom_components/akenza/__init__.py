@@ -13,7 +13,7 @@ from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
 from .entity import hub_device_info
 from .storage import AkenzaCache
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.IMAGE, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: AkenzaConfigEntry) -> bool:

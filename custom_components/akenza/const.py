@@ -14,6 +14,7 @@ CONF_TAG_IDS: Final = "tag_ids"
 CONF_DEFAULT_TOPIC_ONLY: Final = "default_topic_only"
 CONF_ENABLE_HIDDEN_KPIS: Final = "enable_hidden_kpis"
 CONF_POLL_INTERVAL: Final = "poll_interval_minutes"
+CONF_DEVICE_IMAGES: Final = "device_images"
 
 DEFAULT_BASE_URL: Final = "https://api.akenza.io"
 DEFAULT_POLL_INTERVAL: Final = 15

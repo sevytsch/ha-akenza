@@ -20,13 +20,15 @@
           "workspace_ids": "Workspaces",
           "tag_ids": "Tags",
           "default_topic_only": "Nur das Default-Topic importieren",
-          "enable_hidden_kpis": "Versteckte Datenpunkte (hideFromKpis) einbeziehen"
+          "enable_hidden_kpis": "Versteckte Datenpunkte (hideFromKpis) einbeziehen",
+          "device_images": "Produktbilder"
         },
         "data_description": {
           "workspace_ids": "Geräte aus diesen Workspaces werden importiert.",
           "tag_ids": "Optional: nur Geräte importieren, die mindestens einen dieser Tags tragen.",
           "default_topic_only": "Lifecycle-, Konfigurations- und andere Neben-Topics überspringen.",
-          "enable_hidden_kpis": "Entitäten auch für Datenpunkte anlegen, die der Device-Type als versteckt markiert (sonst deaktiviert angelegt)."
+          "enable_hidden_kpis": "Entitäten auch für Datenpunkte anlegen, die der Device-Type als versteckt markiert (sonst deaktiviert angelegt).",
+          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen."
         }
       },
       "reauth_confirm": {
@@ -77,14 +79,16 @@
           "tag_ids": "Tags",
           "default_topic_only": "Nur das Default-Topic importieren",
           "enable_hidden_kpis": "Versteckte Datenpunkte (hideFromKpis) einbeziehen",
-          "poll_interval_minutes": "Intervall für Metadaten-Aktualisierung"
+          "poll_interval_minutes": "Intervall für Metadaten-Aktualisierung",
+          "device_images": "Produktbilder"
         },
         "data_description": {
           "workspace_ids": "Geräte aus diesen Workspaces werden importiert.",
           "tag_ids": "Optional: nur Geräte importieren, die mindestens einen dieser Tags tragen.",
           "default_topic_only": "Lifecycle-, Konfigurations- und andere Neben-Topics überspringen.",
           "enable_hidden_kpis": "Entitäten auch für Datenpunkte anlegen, die der Device-Type als versteckt markiert (sonst deaktiviert angelegt).",
-          "poll_interval_minutes": "Wie oft Geräteliste, Online-Status und Signalwerte aktualisiert werden. Messwerte kommen unabhängig davon live."
+          "poll_interval_minutes": "Wie oft Geräteliste, Online-Status und Signalwerte aktualisiert werden. Messwerte kommen unabhängig davon live.",
+          "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen."
         }
       }
     },
@@ -123,6 +127,11 @@
       },
       "device_count": {
         "name": "Geräte"
+      }
+    },
+    "image": {
+      "product_image": {
+        "name": "Produktbild"
       }
     }
   }

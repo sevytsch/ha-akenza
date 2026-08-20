@@ -68,6 +68,11 @@ async def test_setup_creates_devices_and_entities(
     window = hass.states.get("binary_sensor.bathroom_valve_open_window")
     assert window is not None and window.state == "off"
 
+    image = hass.states.get("image.kitchen_product_image")
+    assert image is not None
+    assert image.attributes["entity_picture"].startswith("/api/image_proxy/image.kitchen_product_image")
+    assert hass.states.get("image.cat_tracker_product_image") is None
+
     online = hass.states.get("binary_sensor.kitchen_online")
     assert online is not None and online.state == "on"
     stream = hass.states.get("binary_sensor.test_org_live_stream")

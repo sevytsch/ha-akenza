@@ -25,6 +25,7 @@ from .api import (
 )
 from .const import (
     CONF_DEFAULT_TOPIC_ONLY,
+    CONF_DEVICE_IMAGES,
     CONF_ENABLE_HIDDEN_KPIS,
     CONF_ORGANIZATION_ID,
     CONF_ORGANIZATION_NAME,
@@ -74,6 +75,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self.tag_ids: set[str] = set(entry.options.get(CONF_TAG_IDS) or [])
         self.default_topic_only: bool = bool(entry.options.get(CONF_DEFAULT_TOPIC_ONLY, False))
         self.enable_hidden_kpis: bool = bool(entry.options.get(CONF_ENABLE_HIDDEN_KPIS, False))
+        self.device_images: bool = bool(entry.options.get(CONF_DEVICE_IMAGES, True))
         self.poll_interval = timedelta(
             minutes=int(entry.options.get(CONF_POLL_INTERVAL) or DEFAULT_POLL_INTERVAL)
         )
