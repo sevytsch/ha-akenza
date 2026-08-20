@@ -26,14 +26,13 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.util import dt as dt_util
 
 from .const import DEFAULT_TOPIC, DOMAIN
-
-MAX_STATE_LENGTH = 255
 from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
 from .entity import AkenzaDeviceEntity, AkenzaHubEntity
 from .mapping import sensor_spec
 from .models import DataPointDescriptor, DeviceState, ValueType
 
 PARALLEL_UPDATES = 0
+MAX_STATE_LENGTH = 255
 
 
 @dataclass(frozen=True, kw_only=True)

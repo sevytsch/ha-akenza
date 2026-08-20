@@ -106,9 +106,9 @@ async def test_live_sample_updates_only_that_device(
     assert hass.states.get("sensor.kitchen_last_seen").state == (now + timedelta(minutes=1)).isoformat()
 
     # over-long strings are truncated to HA's 255-character state limit
-    coordinator._handle_sample(Sample(KITCHEN, "default", now + timedelta(minutes=2), {"payload": "ab" * 200}))
+    coordinator._handle_sample(Sample(KITCHEN, "default", now + timedelta(minutes=2), {"longText": "ab" * 200}))
     await hass.async_block_till_done()
-    long_state = hass.states.get("sensor.kitchen_payload")
+    long_state = hass.states.get("sensor.kitchen_long_text")
     assert len(long_state.state) == 255 and long_state.state.endswith("…")
     assert long_state.attributes["full_value"] == "ab" * 200
 
