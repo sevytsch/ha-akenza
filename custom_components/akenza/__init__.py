@@ -10,6 +10,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import AkenzaApiClient
 from .const import CONF_BASE_URL, DEFAULT_BASE_URL, DOMAIN
 from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
+from .entity import hub_device_info
 from .storage import AkenzaCache
 
 PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.SENSOR]
@@ -26,6 +27,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: AkenzaConfigEntry) -> bo
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
+    # Create the hub device first so the per-device `via_device` reference resolves.
+    dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id, **hub_device_info(coordinator)
+    )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     coordinator.async_start()
     return True

@@ -16,11 +16,12 @@ from .conftest import BASE, CAT, KITCHEN, SILENT, load_fixture, paged, setup_int
 
 
 async def test_setup_creates_devices_and_entities(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None, caplog
 ) -> None:
     """Devices, schema-based and inferred entities exist with seeded states."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
     assert mock_config_entry.state is ConfigEntryState.LOADED
+    assert "non existing `via_device`" not in caplog.text
 
     device_registry = dr.async_get(hass)
     kitchen = device_registry.async_get_device(identifiers={(DOMAIN, KITCHEN)})
