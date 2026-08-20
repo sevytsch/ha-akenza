@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 – 2026-08-20
+
+* String values longer than 255 characters are truncated for the state (full value in the `full_value` attribute) instead of being rejected by Home Assistant.
+
 ## 0.2.2 – 2026-08-20
 
 * Device info no longer shows the device-type id as model id.

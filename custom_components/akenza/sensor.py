@@ -26,6 +26,8 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.util import dt as dt_util
 
 from .const import DEFAULT_TOPIC, DOMAIN
+
+MAX_STATE_LENGTH = 255
 from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
 from .entity import AkenzaDeviceEntity, AkenzaHubEntity
 from .mapping import sensor_spec
@@ -231,7 +233,11 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
             text = str(raw)
             return text if self._attr_options and text in self._attr_options else None
         if self._descriptor.value_type is ValueType.STRING:
-            return str(raw)
+            text = str(raw)
+            if len(text) > MAX_STATE_LENGTH:
+                # Home Assistant rejects states longer than 255 characters.
+                return text[: MAX_STATE_LENGTH - 1] + "…"
+            return text
         if isinstance(raw, bool):
             return int(raw)
         if isinstance(raw, int | float):
@@ -250,6 +256,9 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
         state = self.state_data
         if state and (ts := state.topic_timestamps.get(self._descriptor.topic)):
             attrs["last_sample"] = ts.isoformat()
+        raw = self._raw_value()
+        if isinstance(raw, str) and len(raw) > MAX_STATE_LENGTH:
+            attrs["full_value"] = raw
         return attrs
 
 
