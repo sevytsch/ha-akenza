@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 – 2026-08-20
+
+* Device info no longer shows the device-type id as model id.
+* New diagnostic sensor **akenza ID** per device (the physical device id is shown as serial number).
+* README: note on filtering HomeKit/Google/Alexa exposure for large organizations.
+
 ## 0.2.1 – 2026-08-20
 
 * Seeding backfills topics that the recent-sample window missed (devices with several topics), using `/query/topics` plus one targeted query per topic.

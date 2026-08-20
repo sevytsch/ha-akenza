@@ -61,8 +61,10 @@ async def test_setup_creates_devices_and_entities(
 
     # device without any data still has an online sensor and no value entities
     assert hass.states.get("binary_sensor.silent_device_online") is not None
+    assert hass.states.get("sensor.kitchen_akenza_id").state == KITCHEN
+    assert kitchen.model_id is None
     silent_entities = [e for e in entity_registry.entities.values() if f"_{SILENT}_" in (e.unique_id or "")]
-    assert {e.unique_id.split(f"_{SILENT}_")[-1] for e in silent_entities} == {"meta_online", "meta_last_seen"}
+    assert {e.unique_id.split(f"_{SILENT}_")[-1] for e in silent_entities} == {"meta_online", "meta_last_seen", "meta_akenza_id"}
 
     # boolean from live data -> binary sensor (inferred, unknown device type)
     window = hass.states.get("binary_sensor.bathroom_valve_open_window")

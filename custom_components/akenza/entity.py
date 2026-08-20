@@ -44,7 +44,6 @@ def build_device_info(state: DeviceState, coordinator: AkenzaCoordinator) -> Dev
         name=device.name,
         manufacturer=(device_type.manufacturer if device_type else None) or "akenza",
         model=model,
-        model_id=device.device_type_id,
         sw_version=device_type.firmware_version if device_type else None,
         serial_number=device.device_id,
         configuration_url=PORTAL_DEVICE_URL_TEMPLATE.format(

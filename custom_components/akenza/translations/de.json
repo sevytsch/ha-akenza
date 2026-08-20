@@ -127,6 +127,9 @@
       },
       "device_count": {
         "name": "Geräte"
+      },
+      "akenza_id": {
+        "name": "akenza-ID"
       }
     },
     "image": {

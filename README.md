@@ -57,6 +57,7 @@ For every akenza device:
 | `sensor` **Last seen** | newest uplink / sample timestamp (diagnostic) |
 | `sensor` **RSSI / SNR / Spreading factor / Gateways** | LoRaWAN uplink metrics (diagnostic, disabled by default) |
 | `sensor` **Battery** | battery level reported in uplink metrics (diagnostic) |
+| `sensor` **akenza ID** | the akenza device id (diagnostic); the physical device id (e.g. DevEUI) is shown as the device's serial number |
 | `image` **Product image** | product picture of the device type (diagnostic, can be disabled in the options) |
 
 Per organization a hub device exposes **Live stream** (WebSocket connected) and **Devices** (device count, with seeding progress as attributes).
@@ -72,6 +73,10 @@ Data keys on the topics `configuration`, `raw_payload`, `fuota` and `system.*` a
 * The client stays below akenza's rate limit (10 requests/s, burst 25).
 
 > The WebSocket stream requires that device data is stored in the akenza database (the default "akenza DB" output connector). Data flows without that connector only update through the metadata refresh.
+
+## Large organizations
+
+Hundreds of devices mean thousands of entities. Use the workspace/tag selection and the *default topic only* option to limit what is imported, and **filter your HomeKit, Google Assistant or Alexa exposure** – the HomeKit bridge for example stops at 150 accessories.
 
 ## Troubleshooting
 

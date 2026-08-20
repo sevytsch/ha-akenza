@@ -48,6 +48,13 @@ def _uplink(state: DeviceState) -> Any:
 
 META_SENSORS: tuple[AkenzaMetaSensorDescription, ...] = (
     AkenzaMetaSensorDescription(
+        key="akenza_id",
+        translation_key="akenza_id",
+        icon="mdi:identifier",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda s: s.device.id,
+    ),
+    AkenzaMetaSensorDescription(
         key="last_seen",
         translation_key="last_seen",
         device_class=SensorDeviceClass.TIMESTAMP,
