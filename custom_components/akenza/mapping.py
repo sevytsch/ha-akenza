@@ -440,6 +440,8 @@ def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) ->
                 break
     if device_class is not None and not _valid_unit(device_class, unit):
         device_class = None
+    if not mtype and key_lower in ("latitude", "longitude", "lat", "lon", "lng", "heading", "headingdeg"):
+        wanted_state_class = None
     if unit == PERCENTAGE and device_class is None and descriptor.value_type is ValueType.INTEGER:
         wanted_state_class = SensorStateClass.MEASUREMENT
     state_class = _state_class_for(device_class, wanted_state_class)

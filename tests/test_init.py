@@ -155,3 +155,19 @@ async def test_remove_device(
     assert await async_remove_config_entry_device(hass, mock_config_entry, kitchen) is False
     stale = device_registry.async_get_or_create(config_entry_id=mock_config_entry.entry_id, identifiers={(DOMAIN, "stale")})
     assert await async_remove_config_entry_device(hass, mock_config_entry, stale) is True
+
+
+async def test_failed_poll_keeps_entities_available(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+) -> None:
+    """A failing metadata poll does not make live entities unavailable."""
+    await setup_integration(hass, mock_config_entry, aioclient_mock)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(f"{BASE}/v3/assets/list", status=503, json={"message": "down"})
+    from unittest.mock import AsyncMock, patch
+
+    with patch("custom_components.akenza.api._sleep", AsyncMock()):
+        async_fire_time_changed(hass, datetime.now(UTC) + timedelta(minutes=16))
+        await hass.async_block_till_done(wait_background_tasks=True)
+    assert mock_config_entry.runtime_data.last_update_success is False
+    assert hass.states.get("sensor.kitchen_temperature").state == "27.8"

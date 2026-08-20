@@ -101,5 +101,9 @@ class AkenzaDeviceEntity(AkenzaBaseEntity):
 
     @property
     def available(self) -> bool:
-        """Available while the device is still part of the organization."""
-        return super().available and self.state_data is not None
+        """Available while the device is still part of the organization.
+
+        A failed metadata poll must not mark live-streamed entities unavailable,
+        so this deliberately does not depend on ``coordinator.last_update_success``.
+        """
+        return self.state_data is not None
