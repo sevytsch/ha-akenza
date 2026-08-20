@@ -22,6 +22,9 @@ MAX_POLL_INTERVAL: Final = 1440
 
 PORTAL_URL: Final = "https://app.akenza.io"
 PORTAL_ORG_URL_TEMPLATE: Final = PORTAL_URL + "/org/{organization_id}/overview"
+PORTAL_DEVICE_URL_TEMPLATE: Final = (
+    PORTAL_URL + "/org/{organization_id}/ws/{workspace_id}/assets/device/{device_id}"
+)
 
 # REST client
 API_TIMEOUT: Final = 30

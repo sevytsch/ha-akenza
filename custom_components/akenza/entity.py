@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, PORTAL_ORG_URL_TEMPLATE
+from .const import DOMAIN, PORTAL_DEVICE_URL_TEMPLATE, PORTAL_ORG_URL_TEMPLATE
 from .coordinator import HUB_KEY, AkenzaCoordinator
 from .models import DeviceState
 
@@ -47,8 +47,10 @@ def build_device_info(state: DeviceState, coordinator: AkenzaCoordinator) -> Dev
         model_id=device.device_type_id,
         sw_version=device_type.firmware_version if device_type else None,
         serial_number=device.device_id,
-        configuration_url=PORTAL_ORG_URL_TEMPLATE.format(
-            organization_id=coordinator.organization_id
+        configuration_url=PORTAL_DEVICE_URL_TEMPLATE.format(
+            organization_id=device.organization_id or coordinator.organization_id,
+            workspace_id=device.workspace_id,
+            device_id=device.id,
         ),
         via_device=hub_identifier(coordinator),
     )

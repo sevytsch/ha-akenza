@@ -29,6 +29,9 @@ async def test_setup_creates_devices_and_entities(
     assert kitchen.manufacturer == "Elsys"
     assert kitchen.model == "ERS Eco Lite LoRa"
     assert kitchen.serial_number == "A1B2C3D4E5F60001"
+    assert kitchen.configuration_url == (
+        f"https://app.akenza.io/org/1111111111111111/ws/2222222222222222/assets/device/{KITCHEN}"
+    )
     hub = device_registry.async_get_device(identifiers={(DOMAIN, "org_1111111111111111")})
     assert hub is not None and kitchen.via_device_id == hub.id
 
@@ -53,6 +56,8 @@ async def test_setup_creates_devices_and_entities(
     # untyped HTTP device: entities from infer-schema + data
     cat = hass.states.get("sensor.cat_tracker_at_home")
     assert cat is not None and cat.state == "0"
+    assert cat.attributes["icon"] == "mdi:numeric"
+    assert "icon" not in hass.states.get("sensor.kitchen_temperature").attributes
 
     # device without any data still has an online sensor and no value entities
     assert hass.states.get("binary_sensor.silent_device_online") is not None

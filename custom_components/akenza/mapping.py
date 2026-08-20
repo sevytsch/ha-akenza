@@ -294,6 +294,98 @@ _PRECISION: dict[SensorDeviceClass, int] = {
 }
 
 
+# icons for data points that have no device class (device classes bring their own icons)
+_TYPE_ICONS: dict[str, str] = {
+    "occupancy": "mdi:account-group",
+    "occupied": "mdi:account-check",
+    "peopleIn": "mdi:login",
+    "peopleOut": "mdi:logout",
+    "peopleCount": "mdi:account-multiple",
+    "motion": "mdi:motion-sensor",
+    "brightness": "mdi:brightness-6",
+    "fillLevel": "mdi:cup-water",
+    "acceleration": "mdi:axis-arrow",
+    "latitude": "mdi:latitude",
+    "longitude": "mdi:longitude",
+    "buttonEvent": "mdi:gesture-tap-button",
+    "buttonStatus": "mdi:gesture-tap-button",
+    "digitalInput": "mdi:electric-switch",
+    "digitalOutput": "mdi:electric-switch",
+    "pulseInput": "mdi:pulse",
+    "usage": "mdi:counter",
+    "system": "mdi:information-outline",
+}
+_KEY_ICONS: tuple[tuple[str, str], ...] = (
+    ("occupan", "mdi:account-group"),
+    ("people", "mdi:account-multiple"),
+    ("motion", "mdi:motion-sensor"),
+    ("count", "mdi:counter"),
+    ("latitude", "mdi:latitude"),
+    ("longitude", "mdi:longitude"),
+    ("heading", "mdi:compass"),
+    ("speed", "mdi:speedometer"),
+    ("button", "mdi:gesture-tap-button"),
+    ("door", "mdi:door"),
+    ("window", "mdi:window-closed-variant"),
+    ("valve", "mdi:valve"),
+    ("motor", "mdi:engine"),
+    ("position", "mdi:arrow-expand-vertical"),
+    ("level", "mdi:gauge"),
+    ("period", "mdi:timer-outline"),
+    ("interval", "mdi:timer-outline"),
+    ("time", "mdi:clock-outline"),
+    ("version", "mdi:tag-outline"),
+    ("firmware", "mdi:chip"),
+    ("payload", "mdi:code-braces"),
+    ("error", "mdi:alert-circle-outline"),
+    ("status", "mdi:information-outline"),
+    ("state", "mdi:information-outline"),
+    ("mode", "mdi:tune"),
+    ("type", "mdi:shape-outline"),
+    ("id", "mdi:identifier"),
+    ("name", "mdi:tag-text-outline"),
+    ("port", "mdi:ethernet"),
+    ("rssi", "mdi:signal"),
+    ("snr", "mdi:signal-variant"),
+    ("sf", "mdi:radio-tower"),
+    ("gateway", "mdi:access-point-network"),
+    ("voltage", "mdi:flash"),
+    ("current", "mdi:current-ac"),
+    ("power", "mdi:flash"),
+    ("energy", "mdi:lightning-bolt"),
+    ("temperature", "mdi:thermometer"),
+    ("humidity", "mdi:water-percent"),
+    ("co2", "mdi:molecule-co2"),
+    ("light", "mdi:brightness-5"),
+    ("sound", "mdi:volume-high"),
+    ("noise", "mdi:volume-high"),
+    ("battery", "mdi:battery"),
+    ("distance", "mdi:ruler"),
+    ("pressure", "mdi:gauge"),
+    ("water", "mdi:water"),
+    ("soil", "mdi:sprout"),
+    ("trip", "mdi:map-marker-path"),
+    ("gnss", "mdi:satellite-variant"),
+    ("gps", "mdi:satellite-variant"),
+)
+
+
+def icon_for(descriptor: DataPointDescriptor) -> str | None:
+    """Return an mdi icon for data points without a device class."""
+    _, mtype, _ = split_measurement_type(descriptor.measurement_type)
+    if mtype and mtype in _TYPE_ICONS:
+        return _TYPE_ICONS[mtype]
+    key_lower = descriptor.key.rsplit(".", 1)[-1].lower()
+    for needle, icon in _KEY_ICONS:
+        if needle in key_lower:
+            return icon
+    if descriptor.value_type is ValueType.STRING:
+        return "mdi:text"
+    if descriptor.value_type is ValueType.BOOLEAN:
+        return "mdi:toggle-switch-outline"
+    return "mdi:numeric"
+
+
 @dataclass(frozen=True, slots=True)
 class SensorSpec:
     """Resolved HA attributes for a numeric/string data point."""
@@ -305,6 +397,7 @@ class SensorSpec:
     enabled_default: bool
     precision: int | None
     options: tuple[str, ...] | None
+    icon: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -314,6 +407,7 @@ class BinarySpec:
     device_class: BinarySensorDeviceClass | None
     entity_category: EntityCategory | None
     enabled_default: bool
+    icon: str | None = None
 
 
 def split_measurement_type(
@@ -410,6 +504,7 @@ def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) ->
             enabled_default=enabled,
             precision=None,
             options=options,
+            icon=icon_for(descriptor) if device_class is None else None,
         )
 
     device_class = None
@@ -454,6 +549,7 @@ def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) ->
         enabled_default=enabled,
         precision=precision,
         options=None,
+        icon=icon_for(descriptor) if device_class is None else None,
     )
 
 

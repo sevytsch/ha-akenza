@@ -190,6 +190,8 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
         self._attr_native_unit_of_measurement = spec.unit
         self._attr_entity_category = spec.entity_category
         self._attr_entity_registry_enabled_default = spec.enabled_default
+        if spec.icon:
+            self._attr_icon = spec.icon
         self._attr_suggested_display_precision = spec.precision
         if spec.options:
             self._attr_options = list(spec.options)

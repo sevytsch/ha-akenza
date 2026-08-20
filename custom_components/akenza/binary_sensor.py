@@ -80,6 +80,8 @@ class AkenzaDataPointBinarySensor(AkenzaDeviceEntity, BinarySensorEntity, Restor
         self._attr_device_class = spec.device_class
         self._attr_entity_category = spec.entity_category
         self._attr_entity_registry_enabled_default = spec.enabled_default
+        if spec.icon:
+            self._attr_icon = spec.icon
         self._restored: bool | None = None
 
     async def async_added_to_hass(self) -> None:
