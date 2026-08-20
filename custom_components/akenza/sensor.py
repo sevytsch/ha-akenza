@@ -219,7 +219,14 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
 
     @property
     def native_value(self) -> StateType | datetime:
-        """Current value, coerced to the descriptor type."""
+        """Current value, coerced to the descriptor type (strings capped at 255 chars)."""
+        value = self._native_value()
+        if isinstance(value, str) and len(value) > MAX_STATE_LENGTH:
+            # Home Assistant rejects states longer than 255 characters.
+            return value[: MAX_STATE_LENGTH - 1] + "…"
+        return value
+
+    def _native_value(self) -> StateType | datetime:
         raw = self._raw_value()
         if raw is None:
             state = self.state_data
@@ -232,11 +239,7 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
             text = str(raw)
             return text if self._attr_options and text in self._attr_options else None
         if self._descriptor.value_type is ValueType.STRING:
-            text = str(raw)
-            if len(text) > MAX_STATE_LENGTH:
-                # Home Assistant rejects states longer than 255 characters.
-                return text[: MAX_STATE_LENGTH - 1] + "…"
-            return text
+            return str(raw)
         if isinstance(raw, bool):
             return int(raw)
         if isinstance(raw, int | float):

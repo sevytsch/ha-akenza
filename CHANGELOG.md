@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 – 2026-08-20
+
+* Also cap restored string values at 255 characters (errors during startup).
+
 ## 0.2.4 – 2026-08-20
 
 * Clear the device-type id that versions before 0.2.2 stored as `model_id` in the device registry.
