@@ -177,6 +177,26 @@ async def test_remove_device(
     assert await async_remove_config_entry_device(hass, mock_config_entry, stale) is True
 
 
+async def test_stale_model_id_is_cleared(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+) -> None:
+    """A model_id left behind by older versions is removed from the registry."""
+    mock_config_entry.add_to_hass(hass)
+    registry = dr.async_get(hass)
+    stale = registry.async_get_or_create(
+        config_entry_id=mock_config_entry.entry_id,
+        identifiers={(DOMAIN, KITCHEN)},
+        model_id="331b994e3d4d295b",
+    )
+    assert stale.model_id == "331b994e3d4d295b"
+    from .conftest import mock_api
+
+    mock_api(aioclient_mock)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert registry.async_get_device(identifiers={(DOMAIN, KITCHEN)}).model_id is None
+
+
 async def test_failed_poll_keeps_entities_available(
     hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
 ) -> None:
