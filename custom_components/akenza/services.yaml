@@ -1,8 +1,11 @@
 send_downlink:
-  target:
-    device:
-      integration: akenza
   fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: akenza
+          multiple: true
     payload:
       example: '{"targetTemperature": 21}'
       selector:

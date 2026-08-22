@@ -4,6 +4,7 @@
 
 ### Fixed
 - Setup failed with "Permission denied: no role exists matching the criteria" for API keys scoped to individual workspaces. The device listing no longer sends `organizationId` alongside `workspaceIds`, which triggered an organization-level permission check that workspace-scoped keys cannot pass.
+- `akenza.send_downlink` now takes the device as a `device_id` field (device selector) instead of a service target, as required by current hassfest.
 
 ## 0.3.0 – 2026-08-20
 

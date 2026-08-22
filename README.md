@@ -70,13 +70,12 @@ Data keys on the topics `configuration`, `raw_payload`, `fuota` and `system.*` a
 
 ## Downlinks
 
-The service **`akenza.send_downlink`** queues a downlink for a device (target: the Home Assistant device):
+The service **`akenza.send_downlink`** queues a downlink for a device (`device_id` is the Home Assistant device):
 
 ```yaml
 action: akenza.send_downlink
-target:
-  device_id: 1234567890abcdef1234567890abcdef
 data:
+  device_id: 1234567890abcdef1234567890abcdef
   payload: {"targetTemperature": 21}   # encoded by the device type's downlink script
   port: 1
   confirmed: false

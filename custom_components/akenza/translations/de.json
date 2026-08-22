@@ -155,6 +155,10 @@
       "name": "Downlink senden",
       "description": "Downlink für ein akenza-Gerät einreihen. Entweder JSON-Payload (wird vom Downlink-Script des Device-Types codiert) oder roher Hex-Payload.",
       "fields": {
+        "device_id": {
+          "name": "Gerät",
+          "description": "Home-Assistant-Gerät(e) der akenza-Integration."
+        },
         "payload": {
           "name": "Payload",
           "description": "JSON-Objekt für den Downlink-Encoder des Device-Types."

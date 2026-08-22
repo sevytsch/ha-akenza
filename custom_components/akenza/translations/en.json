@@ -155,6 +155,10 @@
       "name": "Send downlink",
       "description": "Queue a downlink for an akenza device. Either a JSON payload (encoded by the device type's downlink script) or a raw hex payload.",
       "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "Home Assistant device(s) managed by the akenza integration."
+        },
         "payload": {
           "name": "Payload",
           "description": "JSON object passed to the device type's downlink encoder."
