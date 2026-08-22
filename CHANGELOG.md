@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 - 2026-08-22
+
+### Fixed
+- Setup failed with "Permission denied: no role exists matching the criteria" for API keys scoped to individual workspaces. The device listing no longer sends `organizationId` alongside `workspaceIds`, which triggered an organization-level permission check that workspace-scoped keys cannot pass.
+
 ## 0.3.0 – 2026-08-20
 
 * **Device tracker** entities for topics that carry `latitude`/`longitude` (GPS trackers).

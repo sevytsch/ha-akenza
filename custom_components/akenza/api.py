@@ -209,11 +209,14 @@ class AkenzaApiClient:
     async def async_list_devices(
         self, organization_id: str, workspace_ids: Iterable[str] | None = None
     ) -> list[AkenzaDevice]:
-        """List all devices of the organization, optionally limited to workspaces."""
-        body: dict[str, Any] = {"organizationId": organization_id}
+        """List all devices of the organization, optionally limited to workspaces.
+
+        When workspaces are given, only ``workspaceIds`` is sent: including
+        ``organizationId`` makes akenza run an organization-level permission
+        check, which API keys scoped to individual workspaces fail with 403.
+        """
         ids = [w for w in (workspace_ids or []) if w]
-        if ids:
-            body["workspaceIds"] = ids
+        body: dict[str, Any] = {"workspaceIds": ids} if ids else {"organizationId": organization_id}
         items = await self._paged("POST", "/v3/assets/list", params={"sort": "name,asc"}, json=body)
         devices: list[AkenzaDevice] = []
         for item in items:

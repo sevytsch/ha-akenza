@@ -33,7 +33,7 @@ async def test_pagination_and_models(hass: HomeAssistant, aioclient_mock: Aiohtt
     assert len(devices) == 7
     assert devices[-1].name == "Extra"
     assert not hasattr(devices[-1], "loraProperties")
-    assert aioclient_mock.mock_calls[0][2] == {"organizationId": ORG_ID, "workspaceIds": ["w"]}
+    assert aioclient_mock.mock_calls[0][2] == {"workspaceIds": ["w"]}
     assert aioclient_mock.mock_calls[0][3]["x-api-key"] == "k"
 
 
@@ -60,3 +60,13 @@ async def test_websocket_url() -> None:
     """The WebSocket URL is derived from the base URL."""
     client = AkenzaApiClient(None, "k", "https://api.example.akenza.io/")  # type: ignore[arg-type]
     assert client.websocket_url == "wss://api.example.akenza.io/v3/data-streams"
+
+
+async def test_list_devices_without_workspaces_uses_organization(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
+    """Without a workspace selection the organization-wide listing is used."""
+    aioclient_mock.post(f"{BASE}/v3/assets/list", json=load_fixture("assets_list.json"))
+    client = AkenzaApiClient(async_get_clientsession(hass), "k", BASE)
+    await client.async_list_devices(ORG_ID, [])
+    assert aioclient_mock.mock_calls[0][2] == {"organizationId": ORG_ID}

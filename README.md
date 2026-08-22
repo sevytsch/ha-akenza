@@ -28,6 +28,7 @@ Copy `custom_components/akenza` into your Home Assistant `config/custom_componen
 
 1. In akenza open **Organization settings → API keys** and create a key. It needs read access to:
    organization, workspaces, assets (devices), device types and device data. (Write scopes are never used.)
+   The key may be limited to individual workspaces – only those workspaces are offered during setup.
 2. In Home Assistant go to **Settings → Devices & services → Add integration → akenza**.
 3. Paste the API key. The integration discovers your organization and accessible workspaces.
 4. Choose the workspaces (default: all) and optionally restrict to devices carrying certain tags.
