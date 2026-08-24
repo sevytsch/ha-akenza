@@ -32,6 +32,7 @@ Copy `custom_components/akenza` into your Home Assistant `config/custom_componen
 2. In Home Assistant go to **Settings → Devices & services → Add integration → akenza**.
 3. Paste the API key. The integration discovers your organization and accessible workspaces.
 4. Choose the workspaces (default: all) and optionally restrict to devices carrying certain tags.
+5. **Import everything** (recommended) – or pick *Select data points per device type* to deselect data points / topics per device type before anything is created. Both can be changed later in the options.
 
 One config entry corresponds to one akenza organization. Add the integration again with another key for additional organizations.
 
@@ -39,7 +40,8 @@ One config entry corresponds to one akenza organization. Add the integration aga
 
 | Option | Description |
 |---|---|
-| Workspaces / Tags | Which devices to import. Changing this reloads the integration. |
+| Workspaces / Tags | Which devices to import. Selecting every workspace means "all", so workspaces created later are included automatically. Devices added to akenza later (or tagged later) are picked up by the next metadata refresh and seeded right away. Changing this reloads the integration. |
+| Data points per device type | Second menu entry of the options dialog: pick a device type (or a device without one) and deselect the data points or whole topics (`topic · *`) you do not want. Applies to all devices of that type; deselected entities are removed, data points that appear later stay enabled. |
 | Only import the default topic | Skip secondary topics (lifecycle, configuration, …). Useful for very large organizations. |
 | Include data keys hidden from KPIs | Create *enabled* entities for keys the device type marks `hideFromKpis` (otherwise they are created disabled). |
 | Product images | Create an `image` entity per device with the device-type product picture (default on). |
@@ -68,6 +70,33 @@ Per organization a hub device exposes **Live stream** (WebSocket connected) and 
 
 Data keys on the topics `configuration`, `raw_payload`, `fuota` and `system.*` are created **disabled** by default; enable them in the entity settings if needed. Unit, device class and state class come from the akenza `measurementType` (e.g. `akenza/environment/temperature/celsius` → temperature in °C) with a fallback on the unit and the key name. Each entity exposes `topic`, `data_key`, `measurement_type` and `last_sample` as attributes.
 
+## Energy dashboard
+
+Meter readings are created as long-term-statistics sensors that the Home Assistant **Energy dashboard** accepts directly:
+
+| akenza data point | Home Assistant |
+|---|---|
+| `activeEnergy` (Wh, kWh, MWh), any key with an energy unit (`Wh`…`GWh`, `J`…`GJ`) | `device_class: energy`, `state_class: total_increasing` |
+| `reactiveEnergy` (varh, kvarh) | `reactive_energy`, `total_increasing` |
+| volume in `m³` / `L` / `gal` with `water` in the key | `water`, `total_increasing` |
+| volume with `gas` in the key | `gas`, `total_increasing` |
+| other volumes (e.g. heat-meter `volume`) | `volume`, `total_increasing` |
+| `m³/h`, `L/min`, … | `volume_flow_rate` |
+
+Add the `…Cumulative` / total sensors (grid consumption, return, gas, water) under *Settings → Dashboards → Energy*. Values that only hold the **consumption of the last interval** – `activeEnergyPositive` next to `activeEnergyPositiveCumulative`, `consumption` next to `consumptionCumulative`, `periodicCounterIn`, `daily…`, `relative…` – are deliberately created **without** an energy device class (unit kept, `state_class: measurement`) so they cannot corrupt the dashboard. Use the cumulative sibling instead.
+
+## Control entities (downlink scripts)
+
+For LoRaWAN device types that ship a **downlink encoder script**, the integration reads which payload fields the script understands and creates control entities automatically:
+
+| Script fields | Entity | Notes |
+|---|---|---|
+| `red`, `green`, `blue` (+ `onDuration`/`offDuration`) | `light` with RGB colour, brightness and effects *solid / blink_slow / blink_fast* | e.g. Plenom Kuando Busylight. The Busylight reports its colour back (`lastColorRGB`), so the state stops being assumed once the device confirms. As a class C device it applies the colour within seconds. |
+| `setTargetTemperature` | `number` *Target temperature* (5–30 °C) | MClimate Vicki. Shows the reported `targetTemperature` once the valve confirms. |
+| `setChildLock` | `switch` *Child lock* | MClimate Vicki, follows the reported `childLock`. |
+
+Entities appear only when the device type's script really references the field – a device type with a pass-through script gets none. Downlinks are queued at akenza; class C devices (mains powered, e.g. the Busylight) receive them within seconds, class A devices (battery powered, e.g. Vicki) with their next uplink. A confirmed downlink that the device fails to acknowledge is retried by the network server and blocks the queue until it succeeds. For anything else use the service below.
+
 ## Downlinks
 
 The service **`akenza.send_downlink`** queues a downlink for a device (`device_id` is the Home Assistant device):
@@ -82,6 +111,32 @@ data:
 ```
 
 Use `payload_hex: "0e14"` instead of `payload` for a raw LoRaWAN downlink; MQTT devices additionally need `topic`. The API key needs downlink permission.
+
+## Events and the hub device
+
+Every organization has a hub device with *Live stream* (connectivity), *Devices* (count, with seeding progress as attributes) and the button **Scan for new devices**, which refreshes the device list right away instead of waiting for the next metadata refresh. New devices are seeded immediately.
+
+Two events are fired for automations:
+
+```yaml
+triggers:
+  - trigger: event
+    event_type: akenza_device_added      # or akenza_device_removed
+actions:
+  - action: notify.mobile_app_phone
+    data:
+      message: "New akenza device: {{ trigger.event.data.name }} ({{ trigger.event.data.device_type }})"
+```
+
+Event data: `akenza_id`, `name`, `workspace_id`, `organization_id`, `device_type`, `tags`, `config_entry_id`.
+
+## Repairs
+
+Problems that would otherwise degrade silently are shown under **Settings → System → Repairs**:
+
+* **API key lacks permissions** – the key cannot read device types, infer schemas or device data. Devices are still imported; create a key with the read scopes listed under *Setup* and use *Reconfigure*.
+* **Selected workspace unavailable** – a selected workspace was deleted or the key lost access; its devices are removed, the others keep working. Adjust the selection in the options.
+* **Live stream disconnected** – the WebSocket has been down for more than 10 minutes (reconnects automatically).
 
 ## Areas and custom fields
 

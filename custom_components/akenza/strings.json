@@ -56,6 +56,42 @@
           "api_key": "[%key:component::akenza::config::step::user::data_description::api_key%]",
           "base_url": "[%key:component::akenza::config::step::user::data_description::base_url%]"
         }
+      },
+      "import_mode": {
+        "title": "Data points",
+        "description": "Import all data points of the selected devices (recommended – you can restrict them later in the options), or restrict data points per device type now.",
+        "menu_options": {
+          "create": "Import everything",
+          "load_catalog": "Select data points per device type"
+        }
+      },
+      "data_points": {
+        "title": "Data points",
+        "description": "Choose a device type (entries show the number of devices). Only device types with a schema are listed; data points of other devices can be restricted later in the options. {rules} rule(s) set so far.",
+        "data": {
+          "target": "Device type / device"
+        },
+        "data_description": {
+          "target": "The selection applies to all devices of this type."
+        }
+      },
+      "data_point_keys": {
+        "title": "Data points of {target}",
+        "description": "Deselect the data points you do not want in Home Assistant ({count} known). Entities of deselected data points are removed; new data points that appear later stay enabled. Deselecting a `topic · *` entry drops the whole topic.",
+        "data": {
+          "keys": "Data points"
+        },
+        "data_description": {
+          "keys": "Format: topic · name (key)."
+        }
+      },
+      "data_points_next": {
+        "title": "Data points",
+        "description": "The selection is applied when you choose \"Apply\".",
+        "menu_options": {
+          "data_points": "Configure another device type",
+          "apply": "Apply and reload"
+        }
       }
     },
     "error": {
@@ -68,12 +104,24 @@
       "already_configured": "This akenza organization is already configured.",
       "reauth_successful": "Re-authentication was successful.",
       "reconfigure_successful": "Reconfiguration was successful.",
-      "wrong_account": "The API key belongs to a different organization."
+      "wrong_account": "The API key belongs to a different organization.",
+      "not_loaded": "No data points are available yet."
+    },
+    "progress": {
+      "loading_catalog": "Loading devices and device-type schemas …"
     }
   },
   "options": {
     "step": {
       "init": {
+        "title": "akenza options",
+        "description": "What would you like to change?",
+        "menu_options": {
+          "selection": "Workspaces, tags and behaviour",
+          "data_points": "Data points per device type"
+        }
+      },
+      "selection": {
         "title": "akenza options",
         "description": "{organization} has {workspace_count} accessible workspace(s).",
         "data": {
@@ -94,11 +142,40 @@
           "device_images": "[%key:component::akenza::config::step::workspaces::data_description::device_images%]",
           "data_keys_only": "[%key:component::akenza::config::step::workspaces::data_description::data_keys_only%]"
         }
+      },
+      "data_points": {
+        "title": "Data points",
+        "description": "Choose a device type (entries show the number of devices) or a device without a device type. {rules} rule(s) are currently stored.",
+        "data": {
+          "target": "Device type / device"
+        },
+        "data_description": {
+          "target": "The selection applies to all devices of this type."
+        }
+      },
+      "data_point_keys": {
+        "title": "Data points of {target}",
+        "description": "Deselect the data points you do not want in Home Assistant ({count} known). Entities of deselected data points are removed; new data points that appear later stay enabled. Deselecting a `topic · *` entry drops the whole topic.",
+        "data": {
+          "keys": "Data points"
+        },
+        "data_description": {
+          "keys": "Format: topic · name (key)."
+        }
+      },
+      "data_points_next": {
+        "title": "Data points",
+        "description": "The selection is applied when you choose \"Apply\".",
+        "menu_options": {
+          "data_points": "Configure another device type",
+          "apply": "Apply and reload"
+        }
       }
     },
     "abort": {
       "invalid_auth": "[%key:component::akenza::config::error::invalid_auth%]",
-      "cannot_connect": "[%key:component::akenza::config::error::cannot_connect%]"
+      "cannot_connect": "[%key:component::akenza::config::error::cannot_connect%]",
+      "not_loaded": "The integration is not loaded yet – data points can only be configured while it is running."
     }
   },
   "entity": {
@@ -147,6 +224,26 @@
       },
       "position_topic": {
         "name": "Position ({topic})"
+      }
+    },
+    "button": {
+      "scan_devices": {
+        "name": "Scan for new devices"
+      }
+    },
+    "light": {
+      "downlink_light": {
+        "name": "Light"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Target temperature"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Child lock"
       }
     }
   },
@@ -200,6 +297,20 @@
     },
     "downlink_failed": {
       "message": "Sending the downlink failed: {error}"
+    }
+  },
+  "issues": {
+    "missing_permissions": {
+      "title": "akenza API key of {organization} lacks permissions",
+      "description": "The API key cannot call: {endpoints}. Devices are still imported, but manufacturer/model, product images or data-point schemas may be missing and devices without a device type get no entities until they send data. Create a key with read access to organization, workspaces, assets, device types and device data, then use *Reconfigure* on the integration."
+    },
+    "workspace_unavailable": {
+      "title": "Selected akenza workspace(s) unavailable for {organization}",
+      "description": "The workspace(s) {workspaces} were selected for import but no longer exist or the API key has lost access to them. Their devices were removed from Home Assistant. Open the integration options and adjust the workspace selection to clear this issue."
+    },
+    "stream_disconnected": {
+      "title": "akenza live stream for {organization} disconnected",
+      "description": "The WebSocket live stream has been disconnected for more than 10 minutes; measurements are not updated live. Home Assistant keeps reconnecting automatically. Check the internet connection and https://status.akenza.io. This issue disappears once the stream is back."
     }
   }
 }

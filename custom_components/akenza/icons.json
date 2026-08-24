@@ -1,12 +1,49 @@
 {
   "entity": {
     "binary_sensor": {
-      "stream_connected": { "default": "mdi:lan-connect", "state": { "off": "mdi:lan-disconnect" } }
+      "stream_connected": {
+        "default": "mdi:lan-connect",
+        "state": {
+          "off": "mdi:lan-disconnect"
+        }
+      }
     },
     "sensor": {
-      "spreading_factor": { "default": "mdi:radio-tower" },
-      "gateways": { "default": "mdi:access-point-network" },
-      "device_count": { "default": "mdi:devices" }
+      "spreading_factor": {
+        "default": "mdi:radio-tower"
+      },
+      "gateways": {
+        "default": "mdi:access-point-network"
+      },
+      "device_count": {
+        "default": "mdi:devices"
+      }
+    },
+    "button": {
+      "scan_devices": {
+        "default": "mdi:magnify-scan"
+      }
+    },
+    "light": {
+      "downlink_light": {
+        "default": "mdi:led-on",
+        "state": {
+          "off": "mdi:led-off"
+        }
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "default": "mdi:thermostat"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "default": "mdi:lock",
+        "state": {
+          "off": "mdi:lock-open-variant"
+        }
+      }
     }
   }
 }

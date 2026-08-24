@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0 - 2026-08-24
+
+### Added
+- **Data points per device type**: the initial setup offers "Import everything" (default) or restricting data points per device type right away (from the device-type schemas); the options menu has a new step where, per device type (or per device without a device type), individual data points or whole topics can be deselected. Everything is selected by default; deselected data points get no entities (existing ones are removed on reload), data points that appear later stay enabled.
+- Devices that appear in akenza after setup (new device, new tag) are now seeded immediately when the metadata poll finds them, instead of showing `unknown` until their next uplink.
+
+- **Energy dashboard ready**: meter readings are mapped to `energy` / `reactive_energy` / `water` / `gas` / `volume` with `total_increasing` (incl. `MWh`, `GJ`, `varh`, `m³`, `L`, flow rates), also for custom device types (`measurementType: custom`, unit only). Interval values next to a cumulative sibling (`activeEnergyPositive` vs `…Cumulative`, `consumption` vs `consumptionCumulative`, `periodicCounterIn` vs `totalCounterIn`, `relative…`, `daily…`) are no longer treated as meter readings. Power factor gets its device class.
+
+- **Control entities from downlink scripts**: if a LoRaWAN device type has a downlink encoder, the integration reads the payload fields it understands and creates matching entities – an RGB **light** (with brightness and solid/blink effects) when the script takes `red`/`green`/`blue` (e.g. Kuando Busylight), a **number** *Target temperature* for `setTargetTemperature` and a **switch** *Child lock* for `setChildLock` (MClimate Vicki). Numbers/switches show the value the device reports back and are marked as assumed until then; the light adopts the colour the Busylight reports back (`lastColorRGB`). Everything else stays available via `akenza.send_downlink`.
+- **Hub button "Scan for new devices"** refreshes the device list immediately; **events** `akenza_device_added` / `akenza_device_removed` (with `akenza_id`, `name`, `workspace_id`, `device_type`, `tags`) for automations.
+- **Repair issues** instead of silent degradation: API key lacking permissions (device types, infer-schema, device data), selected workspaces that no longer exist or are no longer accessible (their devices are removed, the remaining workspaces keep working), and a live stream disconnected for more than 10 minutes.
+
+### Changed
+- Selecting every accessible workspace now stores "all workspaces", so workspaces created later are included automatically.
+- The options dialog is now a menu (workspaces/tags/behaviour vs. data points).
+
 ## 0.3.1 - 2026-08-22
 
 ### Fixed

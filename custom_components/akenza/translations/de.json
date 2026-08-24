@@ -56,6 +56,42 @@
           "api_key": "Secret eines akenza-API-Keys auf Organisationsebene.",
           "base_url": "Nur für private oder regionale akenza-Instanzen ändern."
         }
+      },
+      "import_mode": {
+        "title": "Datenpunkte",
+        "description": "Alle Datenpunkte der gewählten Geräte importieren (empfohlen – lässt sich später in den Optionen einschränken) oder jetzt Datenpunkte pro Device Type festlegen.",
+        "menu_options": {
+          "create": "Alles importieren",
+          "load_catalog": "Datenpunkte pro Device Type festlegen"
+        }
+      },
+      "data_points": {
+        "title": "Datenpunkte",
+        "description": "Wähle einen Device Type (Einträge zeigen die Anzahl Geräte). Es werden nur Device Types mit Schema angeboten; Datenpunkte anderer Geräte lassen sich später in den Optionen einschränken. Bisher {rules} Regel(n).",
+        "data": {
+          "target": "Device Type / Gerät"
+        },
+        "data_description": {
+          "target": "Die Auswahl gilt für alle Geräte dieses Typs."
+        }
+      },
+      "data_point_keys": {
+        "title": "Datenpunkte von {target}",
+        "description": "Wähle die Datenpunkte ab, die du nicht in Home Assistant haben willst ({count} bekannt). Entitäten abgewählter Datenpunkte werden entfernt; später neu auftauchende Datenpunkte bleiben aktiv. Wird ein Eintrag `topic · *` abgewählt, fällt das ganze Topic weg.",
+        "data": {
+          "keys": "Datenpunkte"
+        },
+        "data_description": {
+          "keys": "Format: Topic · Name (Key)."
+        }
+      },
+      "data_points_next": {
+        "title": "Datenpunkte",
+        "description": "Die Auswahl wird mit „Übernehmen“ aktiv.",
+        "menu_options": {
+          "data_points": "Weiteren Device Type konfigurieren",
+          "apply": "Übernehmen und neu laden"
+        }
       }
     },
     "error": {
@@ -68,12 +104,24 @@
       "already_configured": "Diese akenza-Organisation ist bereits eingerichtet.",
       "reauth_successful": "Neu-Authentifizierung erfolgreich.",
       "reconfigure_successful": "Neukonfiguration erfolgreich.",
-      "wrong_account": "Der API-Key gehört zu einer anderen Organisation."
+      "wrong_account": "Der API-Key gehört zu einer anderen Organisation.",
+      "not_loaded": "Es sind noch keine Datenpunkte verfügbar."
+    },
+    "progress": {
+      "loading_catalog": "Geräte und Device-Type-Schemas werden geladen …"
     }
   },
   "options": {
     "step": {
       "init": {
+        "title": "akenza-Optionen",
+        "description": "Was möchtest du ändern?",
+        "menu_options": {
+          "selection": "Workspaces, Tags und Verhalten",
+          "data_points": "Datenpunkte pro Device Type"
+        }
+      },
+      "selection": {
         "title": "akenza-Optionen",
         "description": "{organization} hat {workspace_count} zugängliche Workspace(s). Wähle, welche Geräte in Home Assistant importiert werden.",
         "data": {
@@ -94,11 +142,40 @@
           "device_images": "Pro Gerät eine Bild-Entität mit dem Produktfoto des akenza-Device-Types anlegen.",
           "data_keys_only": "Entitäten nur für Datenpunkte anlegen, die tatsächlich schon einen Wert geliefert haben (reine Schema-Keys erst beim ersten Sample)."
         }
+      },
+      "data_points": {
+        "title": "Datenpunkte",
+        "description": "Wähle einen Device Type (Einträge zeigen die Anzahl Geräte) oder ein Gerät ohne Device Type. Aktuell sind {rules} Regel(n) gespeichert.",
+        "data": {
+          "target": "Device Type / Gerät"
+        },
+        "data_description": {
+          "target": "Die Auswahl gilt für alle Geräte dieses Typs."
+        }
+      },
+      "data_point_keys": {
+        "title": "Datenpunkte von {target}",
+        "description": "Wähle die Datenpunkte ab, die du nicht in Home Assistant haben willst ({count} bekannt). Entitäten abgewählter Datenpunkte werden entfernt; später neu auftauchende Datenpunkte bleiben aktiv. Wird ein Eintrag `topic · *` abgewählt, fällt das ganze Topic weg.",
+        "data": {
+          "keys": "Datenpunkte"
+        },
+        "data_description": {
+          "keys": "Format: Topic · Name (Key)."
+        }
+      },
+      "data_points_next": {
+        "title": "Datenpunkte",
+        "description": "Die Auswahl wird mit „Übernehmen“ aktiv.",
+        "menu_options": {
+          "data_points": "Weiteren Device Type konfigurieren",
+          "apply": "Übernehmen und neu laden"
+        }
       }
     },
     "abort": {
       "invalid_auth": "Der API-Key wurde abgelehnt oder hat zu wenig Rechte.",
-      "cannot_connect": "Die akenza-API ist nicht erreichbar."
+      "cannot_connect": "Die akenza-API ist nicht erreichbar.",
+      "not_loaded": "Die Integration ist noch nicht geladen – Datenpunkte lassen sich nur im laufenden Betrieb konfigurieren."
     }
   },
   "entity": {
@@ -147,6 +224,26 @@
       },
       "position_topic": {
         "name": "Position ({topic})"
+      }
+    },
+    "button": {
+      "scan_devices": {
+        "name": "Nach neuen Geräten suchen"
+      }
+    },
+    "light": {
+      "downlink_light": {
+        "name": "Licht"
+      }
+    },
+    "number": {
+      "target_temperature": {
+        "name": "Zieltemperatur"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "name": "Kindersicherung"
       }
     }
   },
@@ -200,6 +297,20 @@
     },
     "downlink_failed": {
       "message": "Downlink konnte nicht gesendet werden: {error}"
+    }
+  },
+  "issues": {
+    "missing_permissions": {
+      "title": "akenza-API-Key von {organization} hat zu wenig Rechte",
+      "description": "Der API-Key darf Folgendes nicht aufrufen: {endpoints}. Geräte werden trotzdem importiert, aber Hersteller/Modell, Produktbilder oder Datenpunkt-Schemas können fehlen, und Geräte ohne Device Type bekommen erst Entitäten, wenn sie Daten senden. Lege einen Key mit Leserechten für Organisation, Workspaces, Assets, Device Types und Gerätedaten an und nutze *Neu konfigurieren* bei der Integration."
+    },
+    "workspace_unavailable": {
+      "title": "Gewählte akenza-Workspaces für {organization} nicht verfügbar",
+      "description": "Die Workspaces {workspaces} waren zum Import gewählt, existieren aber nicht mehr oder der API-Key hat keinen Zugriff mehr. Ihre Geräte wurden aus Home Assistant entfernt. Öffne die Integrations-Optionen und passe die Workspace-Auswahl an, um diesen Hinweis zu schliessen."
+    },
+    "stream_disconnected": {
+      "title": "akenza-Live-Stream für {organization} getrennt",
+      "description": "Der WebSocket-Live-Stream ist seit mehr als 10 Minuten getrennt; Messwerte werden nicht live aktualisiert. Home Assistant verbindet automatisch neu. Prüfe die Internetverbindung und https://status.akenza.io. Der Hinweis verschwindet, sobald der Stream wieder steht."
     }
   }
 }
