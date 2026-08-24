@@ -1,0 +1,17 @@
+{
+ "id": "33c7a431d6ff276f",
+ "name": "Kuando Busylight",
+ "pictureUrl": null,
+ "meta": {
+  "manufacturer": "Plenom",
+  "firmwareVersion": null,
+  "url": "https://www.plenom.com/products/kuando-busylight-iot-lorawan/"
+ },
+ "downlinkScript": {
+  "code": "function intToHex(number) {\n  let hex = Number(number).toString(16);\n  if (hex.length === 1) {\n    hex = `0${hex}`;\n  }\n\n  return hex;\n}\n\nfunction consume(event) {\n  let payload = \"\";\n  const data = event.payload;\n\n  payload += intToHex(data.red);\n  payload += intToHex(data.blue);\n  payload += intToHex(data.green);\n  payload += intToHex(data.onDuration);\n  payload += intToHex(data.offDuration);\n\n  emit(\"downlink\", { payloadHex: payload, port: 15, confirmed: true });\n}\n",
+  "version": 1
+ },
+ "schemas": {
+  "lifecycle": "{\"properties\": {\"batteryVoltage\": {\"title\": \"Battery voltage\", \"type\": \"number\", \"unit\": \"V\", \"measurementType\": \"akenza/device/batteryVoltage/volt\"}}}"
+ }
+}

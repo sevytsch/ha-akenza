@@ -1,0 +1,15 @@
+{
+ "id": "33aa11bb22cc33dd",
+ "name": "Vicki",
+ "pictureUrl": null,
+ "meta": {
+  "manufacturer": "MClimate"
+ },
+ "downlinkScript": {
+  "code": "function encodeDownlink(data) {\n  const bytes = [];\n  for (const key of Object.keys(data)) {\n    switch (key) {\n      case \"setKeepAlive\": { bytes.push(0x02); bytes.push(data.setKeepAlive); break; }\n      case \"setChildLock\": { bytes.push(0x07); bytes.push(Number(data.setChildLock)); break; }\n      case \"setTargetTemperature\": { bytes.push(0x0e); bytes.push(data.setTargetTemperature); break; }\n      default: break;\n    }\n  }\n  return bytes;\n}\nfunction consume(event) {\n  const payloadNumber = encodeDownlink(event.payload);\n  let payloadHex = \"\";\n  payloadNumber.forEach(byte => { payloadHex += byte.toString(16).padStart(2, \"0\"); });\n  emit(\"downlink\", { payloadHex, port: 1, confirmed: true });\n}",
+  "version": 1
+ },
+ "schemas": {
+  "default": "{\"properties\": {\"targetTemperature\": {\"title\": \"Target temperature\", \"type\": \"number\", \"unit\": \"\\u00b0C\", \"measurementType\": \"akenza/environment/temperature/celsius\"}, \"sensorTemperature\": {\"title\": \"Sensor temperature\", \"type\": \"number\", \"unit\": \"\\u00b0C\", \"measurementType\": \"akenza/environment/temperature/celsius\"}, \"childLock\": {\"title\": \"Child lock\", \"type\": \"boolean\"}}}"
+ }
+}

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
@@ -117,6 +118,26 @@ class UplinkMetrics:
         )
 
 
+_FIELD_PATTERNS = (
+    re.compile(r"\b(?:data|payload|event\.payload)\.([A-Za-z_]\w*)"),
+    re.compile(r"[\"']([A-Za-z_]\w*)[\"']\s+in\s+(?:payload|data|event\.payload)\b"),
+    re.compile(r"\bcase\s+[\"']([A-Za-z_]\w*)[\"']"),
+)
+_NOT_FIELDS = frozenset(
+    {"length", "payload", "data", "port", "confirmed", "payloadHex", "toString"}
+)
+
+
+def extract_downlink_fields(code: str | None) -> frozenset[str]:
+    """Payload keys referenced by a downlink encoder script (best effort, regex based)."""
+    if not code or not code.strip():
+        return frozenset()
+    found: set[str] = set()
+    for pattern in _FIELD_PATTERNS:
+        found.update(pattern.findall(code))
+    return frozenset(f for f in found if f not in _NOT_FIELDS)
+
+
 @dataclass(frozen=True, slots=True)
 class AkenzaDeviceType:
     """A device type with its per-topic JSON schemas."""
@@ -128,6 +149,8 @@ class AkenzaDeviceType:
     picture_url: str | None = None
     url: str | None = None
     schemas: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # payload fields the device type's downlink script understands (empty: no encoder)
+    downlink_fields: frozenset[str] = frozenset()
 
     @classmethod
     def from_api(cls, data: dict[str, Any]) -> AkenzaDeviceType:
@@ -154,6 +177,11 @@ class AkenzaDeviceType:
             picture_url=data.get("pictureUrl") or None,
             url=meta.get("url") or None,
             schemas=schemas,
+            downlink_fields=extract_downlink_fields(
+                (data.get("downlinkScript") or {}).get("code")
+                if isinstance(data.get("downlinkScript"), dict)
+                else None
+            ),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -166,6 +194,7 @@ class AkenzaDeviceType:
             "picture_url": self.picture_url,
             "url": self.url,
             "schemas": self.schemas,
+            "downlink_fields": sorted(self.downlink_fields),
         }
 
     @classmethod
@@ -179,6 +208,7 @@ class AkenzaDeviceType:
             picture_url=data.get("picture_url"),
             url=data.get("url"),
             schemas=dict(data.get("schemas") or {}),
+            downlink_fields=frozenset(data.get("downlink_fields") or ()),
         )
 
 

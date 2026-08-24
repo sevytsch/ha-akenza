@@ -29,6 +29,9 @@ class AkenzaCache:
         """Load the cache from disk."""
         data = await self._store.async_load() or {}
         for type_id, raw in (data.get("device_types") or {}).items():
+            if "downlink_fields" not in raw:
+                # cached before 0.4.0: refetch so the downlink script is evaluated
+                continue
             try:
                 self.device_types[type_id] = AkenzaDeviceType.from_dict(raw)
             except KeyError, TypeError, ValueError:
