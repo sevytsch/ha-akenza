@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from collections.abc import Callable, Coroutine, Iterable
 from datetime import timedelta
 from typing import Any
@@ -12,6 +13,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -28,6 +31,7 @@ from .const import (
     CONF_DEFAULT_TOPIC_ONLY,
     CONF_DEVICE_IMAGES,
     CONF_ENABLE_HIDDEN_KPIS,
+    CONF_EXCLUDED_DATA_POINTS,
     CONF_ORGANIZATION_ID,
     CONF_ORGANIZATION_NAME,
     CONF_POLL_INTERVAL,
@@ -35,14 +39,23 @@ from .const import (
     CONF_WORKSPACE_IDS,
     DEFAULT_POLL_INTERVAL,
     DEFAULT_TOPIC,
+    DEVICE_TARGET_PREFIX,
     DIAGNOSTIC_TOPIC_PREFIXES,
     DISABLED_TOPICS,
     DOMAIN,
+    EVENT_DEVICE_ADDED,
+    EVENT_DEVICE_REMOVED,
+    ISSUE_MISSING_PERMISSIONS,
+    ISSUE_STREAM_DISCONNECTED,
+    ISSUE_WORKSPACE_UNAVAILABLE,
     MAX_BACKFILL_TOPICS,
+    README_URL,
     RESEED_DEBOUNCE,
     SEED_CONCURRENCY,
     SEED_NOTIFY_EVERY,
     SEED_SAMPLE_LIMIT,
+    STREAM_ISSUE_DELAY,
+    TOPIC_WILDCARD,
 )
 from .models import AkenzaDevice, AkenzaDeviceType, DataPointDescriptor, DeviceState, Sample
 from .schema import (
@@ -81,6 +94,10 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self.enable_hidden_kpis: bool = bool(entry.options.get(CONF_ENABLE_HIDDEN_KPIS, False))
         self.device_images: bool = bool(entry.options.get(CONF_DEVICE_IMAGES, True))
         self.data_keys_only: bool = bool(entry.options.get(CONF_DATA_KEYS_ONLY, False))
+        self.excluded: dict[str, frozenset[str]] = {
+            str(target): frozenset(str(v) for v in values)
+            for target, values in (entry.options.get(CONF_EXCLUDED_DATA_POINTS) or {}).items()
+        }
         self.poll_interval = timedelta(
             minutes=int(entry.options.get(CONF_POLL_INTERVAL) or DEFAULT_POLL_INTERVAL)
         )
@@ -99,6 +116,9 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self._seed_task: asyncio.Task[None] | None = None
         self._connections = 0
         self._unavailable_types: set[str] = set()
+        self._missing_workspaces: set[str] = set()
+        self._forbidden: set[str] = set()
+        self._unsub_stream_issue: CALLBACK_TYPE | None = None
         self.seeding_done = False
         self.seeded_devices = 0
 
@@ -116,20 +136,112 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
             raise UpdateFailed(str(err)) from err
         else:
             self._access_ids = None if access.all else sorted(access.ids)
+        self._update_workspace_issue()
 
     def _effective_workspace_ids(self) -> list[str]:
-        if self.workspace_ids:
+        ids = [w for w in self.workspace_ids if w not in self._missing_workspaces]
+        if ids or self.workspace_ids:
             if self._access_ids is None:
-                return self.workspace_ids
-            return [w for w in self.workspace_ids if w in self._access_ids]
-        return list(self._access_ids or [])
+                return ids
+            return [w for w in ids if w in self._access_ids]
+        return [w for w in (self._access_ids or []) if w not in self._missing_workspaces]
+
+    # --- repair issues ---------------------------------------------------
+
+    def _issue_id(self, issue: str) -> str:
+        return f"{issue}_{self.config_entry.entry_id}"
+
+    def _update_workspace_issue(self) -> None:
+        """Selected workspaces the key cannot see any more -> repair issue."""
+        unavailable = set(self._missing_workspaces)
+        if self._access_ids is not None:
+            unavailable |= {w for w in self.workspace_ids if w not in self._access_ids}
+        if unavailable:
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                self._issue_id(ISSUE_WORKSPACE_UNAVAILABLE),
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key=ISSUE_WORKSPACE_UNAVAILABLE,
+                translation_placeholders={
+                    "organization": self.organization_name,
+                    "workspaces": ", ".join(sorted(unavailable)),
+                },
+                learn_more_url=README_URL,
+            )
+        else:
+            ir.async_delete_issue(self.hass, DOMAIN, self._issue_id(ISSUE_WORKSPACE_UNAVAILABLE))
+
+    def _note_forbidden(self, what: str) -> None:
+        """Record an endpoint the API key may not call and raise/update the repair issue."""
+        if what in self._forbidden:
+            return
+        self._forbidden.add(what)
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            self._issue_id(ISSUE_MISSING_PERMISSIONS),
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=ISSUE_MISSING_PERMISSIONS,
+            translation_placeholders={
+                "organization": self.organization_name,
+                "endpoints": ", ".join(sorted(self._forbidden)),
+            },
+            learn_more_url=README_URL,
+        )
+
+    @callback
+    def _update_stream_issue(self, connected: bool) -> None:
+        """Raise a repair issue when the live stream stays disconnected for a while."""
+        if self._unsub_stream_issue:
+            self._unsub_stream_issue()
+            self._unsub_stream_issue = None
+        if connected:
+            ir.async_delete_issue(self.hass, DOMAIN, self._issue_id(ISSUE_STREAM_DISCONNECTED))
+            return
+
+        @callback
+        def _raise(_now: Any) -> None:
+            self._unsub_stream_issue = None
+            if self.stream.connected:
+                return
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                self._issue_id(ISSUE_STREAM_DISCONNECTED),
+                is_fixable=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key=ISSUE_STREAM_DISCONNECTED,
+                translation_placeholders={"organization": self.organization_name},
+                learn_more_url=README_URL,
+            )
+
+        self._unsub_stream_issue = async_call_later(self.hass, STREAM_ISSUE_DELAY, _raise)
+
+    async def _async_list_devices(self) -> list[AkenzaDevice]:
+        """List devices; drop workspaces that akenza reports as gone (repair issue)."""
+        for _ in range(len(self.workspace_ids) + 1):
+            try:
+                return await self.client.async_list_devices(
+                    self.organization_id, self._effective_workspace_ids()
+                )
+            except AkenzaNotFoundError as err:
+                match = re.search(r"workspace with id (\w+) not found", str(err), re.IGNORECASE)
+                if not match or match.group(1) in self._missing_workspaces:
+                    raise UpdateFailed(str(err)) from err
+                _LOGGER.warning("Workspace %s no longer exists, skipping it", match.group(1))
+                self._missing_workspaces.add(match.group(1))
+                self._update_workspace_issue()
+                if not self._effective_workspace_ids() and self.workspace_ids:
+                    return []
+        raise UpdateFailed("No accessible workspace left")
 
     async def _async_update_data(self) -> dict[str, DeviceState]:
         """Metadata refresh: device list, device types, online state."""
         try:
-            devices = await self.client.async_list_devices(
-                self.organization_id, self._effective_workspace_ids()
-            )
+            devices = await self._async_list_devices()
         except (AkenzaAuthError, AkenzaForbiddenError) as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except AkenzaConnectionError as err:
@@ -172,9 +284,37 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
 
         removed = set(previous) - set(states)
         if removed:
+            for device_id in sorted(removed):
+                self._fire_device_event(EVENT_DEVICE_REMOVED, previous[device_id].device)
             self._remove_devices(removed)
         self.stream.set_asset_ids(states.keys(), self._create_task)
+        if self.data is not None and (added := set(states) - set(previous)):
+            _LOGGER.debug("%d new device(s) found, seeding", len(added))
+            for device_id in sorted(added):
+                self._fire_device_event(EVENT_DEVICE_ADDED, states[device_id].device)
+            # not eager: the seeding must see the new states once they are published
+            self.config_entry.async_create_background_task(
+                self.hass,
+                self._async_seed(infer=True, device_ids=sorted(added)),
+                f"{DOMAIN}_seed_new",
+                eager_start=False,
+            )
         return states
+
+    @callback
+    def _fire_device_event(self, event_type: str, device: AkenzaDevice) -> None:
+        self.hass.bus.async_fire(
+            event_type,
+            {
+                "config_entry_id": self.config_entry.entry_id,
+                "organization_id": self.organization_id,
+                "workspace_id": device.workspace_id,
+                "akenza_id": device.id,
+                "name": device.name,
+                "device_type": device.device_type_name,
+                "tags": list(device.tag_names),
+            },
+        )
 
     def _type_descriptors(
         self, device_type: AkenzaDeviceType | None
@@ -197,8 +337,12 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
                 self.cache.device_types[type_id] = await self.client.async_get_device_type(type_id)
             except AkenzaAuthError:
                 raise
-            except (AkenzaForbiddenError, AkenzaNotFoundError) as err:
+            except AkenzaForbiddenError as err:
                 _LOGGER.debug("Device type %s not accessible: %s", type_id, err)
+                self._unavailable_types.add(type_id)
+                self._note_forbidden("device-types")
+            except AkenzaNotFoundError as err:
+                _LOGGER.debug("Device type %s not found: %s", type_id, err)
                 self._unavailable_types.add(type_id)
             except AkenzaConnectionError as err:
                 _LOGGER.debug("Device type %s could not be fetched: %s", type_id, err)
@@ -241,6 +385,9 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         if self._unsub_reseed:
             self._unsub_reseed()
             self._unsub_reseed = None
+        if self._unsub_stream_issue:
+            self._unsub_stream_issue()
+            self._unsub_stream_issue = None
         if self._seed_task and not self._seed_task.done():
             self._seed_task.cancel()
         await self.stream.async_stop()
@@ -294,7 +441,11 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         if infer:
             try:
                 schema = await self.client.async_infer_schema(device_id)
-            except (AkenzaForbiddenError, AkenzaNotFoundError, AkenzaConnectionError) as err:
+            except AkenzaForbiddenError as err:
+                _LOGGER.debug("infer-schema for %s failed: %s", device_id, err)
+                self._note_forbidden("infer-schema")
+                schema = {}
+            except (AkenzaNotFoundError, AkenzaConnectionError) as err:
                 _LOGGER.debug("infer-schema for %s failed: %s", device_id, err)
                 schema = {}
             inferred = descriptors_from_schemas(schema, inferred=True)
@@ -303,7 +454,11 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
             )
         try:
             samples = await self.client.async_query_latest(device_id, SEED_SAMPLE_LIMIT)
-        except (AkenzaForbiddenError, AkenzaConnectionError) as err:
+        except AkenzaForbiddenError as err:
+            _LOGGER.debug("query for %s failed: %s", device_id, err)
+            self._note_forbidden("device data (query)")
+            samples = []
+        except AkenzaConnectionError as err:
             _LOGGER.debug("query for %s failed: %s", device_id, err)
             samples = []
         seen_topics: set[str] = set()
@@ -331,7 +486,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
             if d.topic not in seen_topics
             and d.topic not in DISABLED_TOPICS
             and not d.topic.startswith(DIAGNOSTIC_TOPIC_PREFIXES)
-            and not (self.default_topic_only and d.topic != DEFAULT_TOPIC)
+            and self.topic_wanted(state, d.topic)
         }
         if not wanted:
             return
@@ -365,7 +520,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         state.topic_timestamps[sample.topic] = sample.timestamp
         if state.last_seen is None or sample.timestamp > state.last_seen:
             state.last_seen = sample.timestamp
-        if self.default_topic_only and sample.topic != DEFAULT_TOPIC:
+        if not self.topic_wanted(state, sample.topic):
             if notify:
                 self._notify(sample.device_id)
             return
@@ -395,6 +550,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
             self._connections += 1
             if self._connections > 1:
                 self._schedule_reseed()
+        self._update_stream_issue(connected)
         self._notify(HUB_KEY)
 
     def _schedule_reseed(self) -> None:
@@ -436,11 +592,90 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
 
     # --- helpers for platforms ------------------------------------------
 
+    def exclusions_for(self, state: DeviceState) -> frozenset[str]:
+        """Excluded data points of a device (device-type rules plus per-device rules)."""
+        if not self.excluded:
+            return frozenset()
+        type_id = state.device.device_type_id
+        by_type = self.excluded.get(type_id, frozenset()) if type_id else frozenset()
+        by_device = self.excluded.get(f"{DEVICE_TARGET_PREFIX}{state.device.id}", frozenset())
+        return by_type | by_device
+
+    @staticmethod
+    def is_excluded(exclusions: frozenset[str], topic: str, key: str | None = None) -> bool:
+        """Whether a topic (or one data key of it) is excluded by the given rules."""
+        if not exclusions:
+            return False
+        if f"{topic}/{TOPIC_WILDCARD}" in exclusions:
+            return True
+        return key is not None and f"{topic}/{key}" in exclusions
+
+    def topic_wanted(self, state: DeviceState, topic: str) -> bool:
+        """Whether data of this topic is used for the device at all."""
+        if self.default_topic_only and topic != DEFAULT_TOPIC:
+            return False
+        return not self.is_excluded(self.exclusions_for(state), topic)
+
     def entity_wanted(self, state: DeviceState, descriptor: DataPointDescriptor) -> bool:
         """Whether an entity should exist for this data point given the options."""
         if self.default_topic_only and descriptor.topic != DEFAULT_TOPIC:
             return False
+        if self.is_excluded(self.exclusions_for(state), descriptor.topic, descriptor.key):
+            return False
         return not (self.data_keys_only and descriptor.key_id not in state.values)
+
+    @staticmethod
+    def _key_id_excluded(exclusions: frozenset[str], key_id: str) -> bool:
+        """Whether a unique-id suffix ``{topic}_{key}`` matches one of the rules."""
+        for rule in exclusions:
+            topic, _, key = rule.partition("/")
+            if key == TOPIC_WILDCARD:
+                if key_id.startswith(f"{topic}_"):
+                    return True
+            elif key_id == f"{topic}_{key}":
+                return True
+        return False
+
+    @callback
+    def async_purge_excluded_entities(self) -> None:
+        """Remove registry entries of data points that are excluded by the options.
+
+        Works on the registry directly so it does not depend on the descriptors
+        being loaded yet (devices without a device type only know their data
+        points after seeding).
+        """
+        if not self.excluded or not self.data:
+            return
+        registry = er.async_get(self.hass)
+        removed = 0
+        for entry in er.async_entries_for_config_entry(registry, self.config_entry.entry_id):
+            unique_id = entry.unique_id
+            if not unique_id.startswith(f"{DOMAIN}_"):
+                continue
+            device_id, _, key_id = unique_id[len(DOMAIN) + 1 :].partition("_")
+            state = self.data.get(device_id)
+            if state is None or not key_id:
+                continue
+            exclusions = self.exclusions_for(state)
+            if not exclusions:
+                continue
+            if entry.domain == "device_tracker":
+                excluded = key_id.endswith("_position") and self.is_excluded(
+                    exclusions, key_id.removesuffix("_position")
+                )
+            elif entry.domain in ("sensor", "binary_sensor", "event"):
+                if entry.domain == "event":
+                    key_id = key_id.removesuffix("_event")
+                excluded = not key_id.startswith("meta_") and self._key_id_excluded(
+                    exclusions, key_id
+                )
+            else:
+                excluded = False
+            if excluded:
+                registry.async_remove(entry.entity_id)
+                removed += 1
+        if removed:
+            _LOGGER.info("Removed %d entities of excluded data points", removed)
 
     @property
     def stream_connected(self) -> bool:

@@ -144,8 +144,12 @@ def mock_api(aioclient_mock: AiohttpClientMocker, *, assets: dict[str, Any] | No
     aioclient_mock.get(
         f"{BASE}/v3/device-types/{ERS_ECO_TYPE}", json=load_fixture("device_type_ers_eco.json")
     )
-    aioclient_mock.get(f"{BASE}/v3/device-types/337096c7a576c35e", status=404, json={"message": "nf"})
-    aioclient_mock.get(f"{BASE}/v3/device-types/3372f14fe98432c0", status=403, json={"message": "no"})
+    aioclient_mock.get(
+        f"{BASE}/v3/device-types/337096c7a576c35e", status=404, json={"message": "nf"}
+    )
+    aioclient_mock.get(
+        f"{BASE}/v3/device-types/3372f14fe98432c0", status=403, json={"message": "no"}
+    )
     aioclient_mock.get(f"{BASE}/v3/devices/{KITCHEN}/infer-schema", json={})
     aioclient_mock.get(
         f"{BASE}/v3/devices/{KITCHEN}/query",

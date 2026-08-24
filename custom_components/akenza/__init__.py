@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import voluptuous as vol
 from homeassistant.const import ATTR_DEVICE_ID, CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant, ServiceCall, callback
@@ -26,15 +24,20 @@ from .const import (
     SERVICE_SEND_DOWNLINK,
 )
 from .coordinator import AkenzaConfigEntry, AkenzaCoordinator
+from .downlink import build_downlink_body
 from .entity import hub_device_info
 from .storage import AkenzaCache
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     Platform.DEVICE_TRACKER,
     Platform.EVENT,
     Platform.IMAGE,
+    Platform.LIGHT,
+    Platform.NUMBER,
     Platform.SENSOR,
+    Platform.SWITCH,
 ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -64,9 +67,7 @@ def _find_device(hass: HomeAssistant, ha_device_id: str) -> tuple[AkenzaCoordina
     """Resolve a Home Assistant device id to (coordinator, akenza device id)."""
     device = dr.async_get(hass).async_get(ha_device_id)
     if device is None:
-        raise ServiceValidationError(
-            translation_domain=DOMAIN, translation_key="device_not_found"
-        )
+        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="device_not_found")
     akenza_ids = {ident for domain, ident in device.identifiers if domain == DOMAIN}
     for entry_id in device.config_entries:
         entry = hass.config_entries.async_get_entry(entry_id)
@@ -77,42 +78,6 @@ def _find_device(hass: HomeAssistant, ha_device_id: str) -> tuple[AkenzaCoordina
             if coordinator.data and akenza_id in coordinator.data:
                 return coordinator, akenza_id
     raise ServiceValidationError(translation_domain=DOMAIN, translation_key="device_not_found")
-
-
-def build_downlink_body(
-    connectivity: str | None,
-    *,
-    payload: dict[str, Any] | None,
-    payload_hex: str | None,
-    port: int,
-    confirmed: bool,
-    topic: str | None,
-) -> dict[str, Any]:
-    """Build the akenza downlink request body for a device's connectivity."""
-    if payload is None and payload_hex is None:
-        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="payload_required")
-    kind = (connectivity or "").upper()
-    if kind == "LORA":
-        downlink: dict[str, Any] = {"port": port, "confirmed": confirmed}
-        if payload_hex is not None:
-            downlink["payloadHex"] = payload_hex
-            return {"raw": True, "loraDownlink": downlink}
-        downlink["payload"] = payload
-        return {"loraDownlink": downlink}
-    if kind == "MQTT":
-        if not topic:
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="topic_required")
-        mqtt: dict[str, Any] = {"topic": topic, "contentType": "JSON"}
-        if payload_hex is not None:
-            mqtt["payload"] = {"payloadHex": payload_hex}
-            return {"raw": True, "mqttDownlink": mqtt}
-        mqtt["payload"] = payload
-        return {"mqttDownlink": mqtt}
-    raise ServiceValidationError(
-        translation_domain=DOMAIN,
-        translation_key="downlink_unsupported",
-        translation_placeholders={"connectivity": connectivity or "unknown"},
-    )
 
 
 async def _async_send_downlink(call: ServiceCall) -> None:
@@ -163,6 +128,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AkenzaConfigEntry) -> bo
     for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):
         if device.model_id is not None:
             device_registry.async_update_device(device.id, model_id=None)
+    coordinator.async_purge_excluded_entities()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     coordinator.async_start()
     return True

@@ -16,7 +16,11 @@ from .conftest import BASE, CAT, KITCHEN, SILENT, load_fixture, paged, setup_int
 
 
 async def test_setup_creates_devices_and_entities(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None, caplog
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
+    caplog,
 ) -> None:
     """Devices, schema-based and inferred entities exist with seeded states."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -49,7 +53,9 @@ async def test_setup_creates_devices_and_entities(
     assert battery_entry is not None and battery_entry.entity_category == "diagnostic"
 
     # configuration topic entities are created but disabled
-    nfc = entity_registry.async_get_entity_id("binary_sensor", DOMAIN, f"{DOMAIN}_{KITCHEN}_configuration_nfcDisable")
+    nfc = entity_registry.async_get_entity_id(
+        "binary_sensor", DOMAIN, f"{DOMAIN}_{KITCHEN}_configuration_nfcDisable"
+    )
     assert nfc is not None
     assert entity_registry.async_get(nfc).disabled_by is er.RegistryEntryDisabler.INTEGRATION
 
@@ -63,8 +69,14 @@ async def test_setup_creates_devices_and_entities(
     assert hass.states.get("binary_sensor.silent_device_online") is not None
     assert hass.states.get("sensor.kitchen_akenza_id").state == KITCHEN
     assert kitchen.model_id is None
-    silent_entities = [e for e in entity_registry.entities.values() if f"_{SILENT}_" in (e.unique_id or "")]
-    assert {e.unique_id.split(f"_{SILENT}_")[-1] for e in silent_entities} == {"meta_online", "meta_last_seen", "meta_akenza_id"}
+    silent_entities = [
+        e for e in entity_registry.entities.values() if f"_{SILENT}_" in (e.unique_id or "")
+    ]
+    assert {e.unique_id.split(f"_{SILENT}_")[-1] for e in silent_entities} == {
+        "meta_online",
+        "meta_last_seen",
+        "meta_akenza_id",
+    }
 
     # boolean from live data -> binary sensor (inferred, unknown device type)
     window = hass.states.get("binary_sensor.bathroom_valve_open_window")
@@ -72,7 +84,9 @@ async def test_setup_creates_devices_and_entities(
 
     image = hass.states.get("image.kitchen_product_image")
     assert image is not None
-    assert image.attributes["entity_picture"].startswith("/api/image_proxy/image.kitchen_product_image")
+    assert image.attributes["entity_picture"].startswith(
+        "/api/image_proxy/image.kitchen_product_image"
+    )
     assert hass.states.get("image.cat_tracker_product_image") is None
 
     online = hass.states.get("binary_sensor.kitchen_online")
@@ -84,29 +98,50 @@ async def test_setup_creates_devices_and_entities(
 
 
 async def test_live_sample_updates_only_that_device(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """A pushed sample updates the entity; older samples are ignored; new keys create entities."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
     coordinator = mock_config_entry.runtime_data
     now = datetime(2026, 8, 20, 16, 0, tzinfo=UTC)
-    coordinator._handle_sample(Sample(KITCHEN, "default", now, {"temperature": 21.5, "humidity": 40, "light": 5}))
+    coordinator._handle_sample(
+        Sample(KITCHEN, "default", now, {"temperature": 21.5, "humidity": 40, "light": 5})
+    )
     await hass.async_block_till_done()
     assert hass.states.get("sensor.kitchen_temperature").state == "21.5"
-    assert hass.states.get("sensor.kitchen_temperature").attributes["last_sample"] == now.isoformat()
+    assert (
+        hass.states.get("sensor.kitchen_temperature").attributes["last_sample"] == now.isoformat()
+    )
 
-    coordinator._handle_sample(Sample(KITCHEN, "default", now - timedelta(minutes=5), {"temperature": 99}))
+    coordinator._handle_sample(
+        Sample(KITCHEN, "default", now - timedelta(minutes=5), {"temperature": 99})
+    )
     await hass.async_block_till_done()
     assert hass.states.get("sensor.kitchen_temperature").state == "21.5"
 
-    coordinator._handle_sample(Sample(KITCHEN, "default", now + timedelta(minutes=1), {"temperature": 22, "newKey": 7, "flag": True}))
+    coordinator._handle_sample(
+        Sample(
+            KITCHEN,
+            "default",
+            now + timedelta(minutes=1),
+            {"temperature": 22, "newKey": 7, "flag": True},
+        )
+    )
     await hass.async_block_till_done()
     assert hass.states.get("sensor.kitchen_new_key").state == "7"
     assert hass.states.get("binary_sensor.kitchen_flag").state == "on"
-    assert hass.states.get("sensor.kitchen_last_seen").state == (now + timedelta(minutes=1)).isoformat()
+    assert (
+        hass.states.get("sensor.kitchen_last_seen").state
+        == (now + timedelta(minutes=1)).isoformat()
+    )
 
     # over-long strings are truncated to HA's 255-character state limit
-    coordinator._handle_sample(Sample(KITCHEN, "default", now + timedelta(minutes=2), {"longText": "ab" * 200}))
+    coordinator._handle_sample(
+        Sample(KITCHEN, "default", now + timedelta(minutes=2), {"longText": "ab" * 200})
+    )
     await hass.async_block_till_done()
     long_state = hass.states.get("sensor.kitchen_long_text")
     assert len(long_state.state) == 255 and long_state.state.endswith("…")
@@ -117,17 +152,33 @@ async def test_live_sample_updates_only_that_device(
 
 
 async def test_poll_removes_and_adds_devices(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """The metadata poll removes vanished devices and adds new ones."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
     assets = load_fixture("assets_list.json")
     remaining = [d for d in assets["content"] if d["id"] != CAT]
-    remaining.append({**remaining[0], "id": "02aaaaaaaaaaaaaa", "name": "Newcomer", "dataFlow": None})
+    remaining.append(
+        {**remaining[0], "id": "02aaaaaaaaaaaaaa", "name": "Newcomer", "dataFlow": None}
+    )
     aioclient_mock.clear_requests()
     aioclient_mock.post(f"{BASE}/v3/assets/list", json=paged(remaining))
     aioclient_mock.get(f"{BASE}/v3/devices/02aaaaaaaaaaaaaa/infer-schema", json={})
-    aioclient_mock.get(f"{BASE}/v3/devices/02aaaaaaaaaaaaaa/query", json=[])
+    aioclient_mock.get(
+        f"{BASE}/v3/devices/02aaaaaaaaaaaaaa/query",
+        json=[
+            {
+                "timestamp": "2026-08-20T16:00:00.000Z",
+                "deviceId": "02aaaaaaaaaaaaaa",
+                "topic": "default",
+                "data": {"co2": 512},
+            }
+        ],
+    )
+    aioclient_mock.get(f"{BASE}/v3/devices/02aaaaaaaaaaaaaa/query/topics", json=["default"])
 
     async_fire_time_changed(hass, datetime.now(UTC) + timedelta(minutes=16))
     await hass.async_block_till_done(wait_background_tasks=True)
@@ -137,10 +188,15 @@ async def test_poll_removes_and_adds_devices(
     assert device_registry.async_get_device(identifiers={(DOMAIN, "02aaaaaaaaaaaaaa")}) is not None
     assert hass.states.get("binary_sensor.newcomer_online") is not None
     assert hass.states.get("sensor.cat_tracker_at_home") is None
+    # the newcomer was seeded right away: its data points exist with values
+    assert hass.states.get("sensor.newcomer_co2").state == "512"
 
 
 async def test_poll_auth_failure_triggers_reauth(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """A 401 during the poll starts a reauth flow."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -153,7 +209,10 @@ async def test_poll_auth_failure_triggers_reauth(
 
 
 async def test_unload(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """Unloading stops everything."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -164,7 +223,11 @@ async def test_unload(
 
 
 async def test_remove_device(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None, hass_ws_client
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
+    hass_ws_client,
 ) -> None:
     """Known devices cannot be removed via the UI, stale ones can."""
     from custom_components.akenza import async_remove_config_entry_device
@@ -173,12 +236,17 @@ async def test_remove_device(
     device_registry = dr.async_get(hass)
     kitchen = device_registry.async_get_device(identifiers={(DOMAIN, KITCHEN)})
     assert await async_remove_config_entry_device(hass, mock_config_entry, kitchen) is False
-    stale = device_registry.async_get_or_create(config_entry_id=mock_config_entry.entry_id, identifiers={(DOMAIN, "stale")})
+    stale = device_registry.async_get_or_create(
+        config_entry_id=mock_config_entry.entry_id, identifiers={(DOMAIN, "stale")}
+    )
     assert await async_remove_config_entry_device(hass, mock_config_entry, stale) is True
 
 
 async def test_stale_model_id_is_cleared(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """A model_id left behind by older versions is removed from the registry."""
     mock_config_entry.add_to_hass(hass)
@@ -198,7 +266,10 @@ async def test_stale_model_id_is_cleared(
 
 
 async def test_failed_poll_keeps_entities_available(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """A failing metadata poll does not make live entities unavailable."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)

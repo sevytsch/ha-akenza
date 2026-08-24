@@ -10,11 +10,24 @@ from custom_components.akenza.api import AkenzaApiClient, AkenzaAuthError, Akenz
 from .conftest import BASE, ORG_ID, load_fixture, paged
 
 
-async def test_pagination_and_models(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
+async def test_pagination_and_models(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker
+) -> None:
     """Two pages are merged and loraProperties are never exposed."""
     page0 = load_fixture("assets_list.json")
     page0.update(last=False, totalPages=2)
-    page1 = paged([{"id": "02ffffffffffffff", "name": "Extra", "type": "DEVICE", "workspaceId": "w", "organizationId": ORG_ID, "loraProperties": {"applicationKey": "secret"}}])
+    page1 = paged(
+        [
+            {
+                "id": "02ffffffffffffff",
+                "name": "Extra",
+                "type": "DEVICE",
+                "workspaceId": "w",
+                "organizationId": ORG_ID,
+                "loraProperties": {"applicationKey": "secret"},
+            }
+        ]
+    )
     aioclient_mock.post(f"{BASE}/v3/assets/list", side_effect=None, json=page0)
     client = AkenzaApiClient(async_get_clientsession(hass), "k", BASE)
     # first call returns page0, second page1
@@ -39,7 +52,9 @@ async def test_pagination_and_models(hass: HomeAssistant, aioclient_mock: Aiohtt
 
 async def test_auth_error(hass: HomeAssistant, aioclient_mock: AiohttpClientMocker) -> None:
     """401 raises AkenzaAuthError."""
-    aioclient_mock.get(f"{BASE}/v3/organizations", status=401, json={"message": "Invalid token provided"})
+    aioclient_mock.get(
+        f"{BASE}/v3/organizations", status=401, json={"message": "Invalid token provided"}
+    )
     client = AkenzaApiClient(async_get_clientsession(hass), "bad", BASE)
     with pytest.raises(AkenzaAuthError):
         await client.async_get_organization()
@@ -51,7 +66,10 @@ async def test_retry_on_429(hass: HomeAssistant, aioclient_mock: AiohttpClientMo
     client = AkenzaApiClient(async_get_clientsession(hass), "k", BASE)
     from unittest.mock import AsyncMock, patch
 
-    with patch("custom_components.akenza.api._sleep", AsyncMock()), pytest.raises(AkenzaConnectionError):
+    with (
+        patch("custom_components.akenza.api._sleep", AsyncMock()),
+        pytest.raises(AkenzaConnectionError),
+    ):
         await client.async_get_organization()
     assert aioclient_mock.call_count == 3
 

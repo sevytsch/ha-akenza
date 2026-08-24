@@ -17,7 +17,10 @@ from .conftest import BASE, KITCHEN, TRACKER, setup_integration
 
 
 async def test_tracker_and_area(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """A topic with latitude/longitude becomes a GPS tracker; Room custom field suggests the area."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -36,7 +39,10 @@ async def test_tracker_and_area(
 
 
 async def test_button_event(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """Button keys get an event entity that fires on new pressed samples only."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -49,7 +55,9 @@ async def test_button_event(
     fired = hass.states.get("event.garage_tracker_button1")
     assert fired.state != "unknown" and fired.attributes["event_type"] == "pressed"
     # a released sample must not fire again
-    coordinator._handle_sample(Sample(TRACKER, "default", now + timedelta(seconds=1), {"button1": False}))
+    coordinator._handle_sample(
+        Sample(TRACKER, "default", now + timedelta(seconds=1), {"button1": False})
+    )
     await hass.async_block_till_done()
     assert hass.states.get("event.garage_tracker_button1").state == fired.state
     # the regular binary sensor still exists alongside
@@ -58,26 +66,37 @@ async def test_button_event(
 
 def test_build_downlink_body() -> None:
     """Request bodies per connectivity."""
-    assert build_downlink_body("LORA", payload={"a": 1}, payload_hex=None, port=2, confirmed=True, topic=None) == {
-        "loraDownlink": {"port": 2, "confirmed": True, "payload": {"a": 1}}
-    }
-    assert build_downlink_body("LORA", payload=None, payload_hex="0e14", port=1, confirmed=False, topic=None) == {
+    assert build_downlink_body(
+        "LORA", payload={"a": 1}, payload_hex=None, port=2, confirmed=True, topic=None
+    ) == {"loraDownlink": {"port": 2, "confirmed": True, "payload": {"a": 1}}}
+    assert build_downlink_body(
+        "LORA", payload=None, payload_hex="0e14", port=1, confirmed=False, topic=None
+    ) == {
         "raw": True,
         "loraDownlink": {"port": 1, "confirmed": False, "payloadHex": "0e14"},
     }
-    assert build_downlink_body("MQTT", payload={"on": True}, payload_hex=None, port=1, confirmed=False, topic="dl") == {
-        "mqttDownlink": {"topic": "dl", "contentType": "JSON", "payload": {"on": True}}
-    }
+    assert build_downlink_body(
+        "MQTT", payload={"on": True}, payload_hex=None, port=1, confirmed=False, topic="dl"
+    ) == {"mqttDownlink": {"topic": "dl", "contentType": "JSON", "payload": {"on": True}}}
     with pytest.raises(ServiceValidationError):
-        build_downlink_body("LORA", payload=None, payload_hex=None, port=1, confirmed=False, topic=None)
+        build_downlink_body(
+            "LORA", payload=None, payload_hex=None, port=1, confirmed=False, topic=None
+        )
     with pytest.raises(ServiceValidationError):
-        build_downlink_body("MQTT", payload={"a": 1}, payload_hex=None, port=1, confirmed=False, topic=None)
+        build_downlink_body(
+            "MQTT", payload={"a": 1}, payload_hex=None, port=1, confirmed=False, topic=None
+        )
     with pytest.raises(ServiceValidationError):
-        build_downlink_body("HTTP", payload={"a": 1}, payload_hex=None, port=1, confirmed=False, topic=None)
+        build_downlink_body(
+            "HTTP", payload={"a": 1}, payload_hex=None, port=1, confirmed=False, topic=None
+        )
 
 
 async def test_send_downlink_service(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """The service posts to the downlink endpoint and maps errors."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -91,7 +110,10 @@ async def test_send_downlink_service(
     )
     call = aioclient_mock.mock_calls[-1]
     assert call[0] == "POST" and str(call[1]).endswith(f"/v3/devices/{KITCHEN}/downlink")
-    assert call[2] == {"raw": True, "loraDownlink": {"port": 3, "confirmed": False, "payloadHex": "0e14"}}
+    assert call[2] == {
+        "raw": True,
+        "loraDownlink": {"port": 3, "confirmed": False, "payloadHex": "0e14"},
+    }
 
     aioclient_mock.clear_requests()
     aioclient_mock.post(f"{BASE}/v3/devices/{KITCHEN}/downlink", status=403, json={"message": "no"})
@@ -101,12 +123,18 @@ async def test_send_downlink_service(
         )
     with pytest.raises(ServiceValidationError):
         await hass.services.async_call(
-            DOMAIN, "send_downlink", {"device_id": "does-not-exist", "payload": {"x": 1}}, blocking=True
+            DOMAIN,
+            "send_downlink",
+            {"device_id": "does-not-exist", "payload": {"x": 1}},
+            blocking=True,
         )
 
 
 async def test_data_keys_only(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """With the option on, schema-only keys get no entity until they deliver data."""
     entry = MockConfigEntry(
@@ -121,6 +149,8 @@ async def test_data_keys_only(
     # ERS Eco schema declares `configuration` keys that never delivered data
     assert hass.states.get("binary_sensor.kitchen_nfc_disabled") is None
     coordinator = entry.runtime_data
-    coordinator._handle_sample(Sample(KITCHEN, "default", datetime(2026, 8, 20, 16, 0, tzinfo=UTC), {"newKey": 1}))
+    coordinator._handle_sample(
+        Sample(KITCHEN, "default", datetime(2026, 8, 20, 16, 0, tzinfo=UTC), {"newKey": 1})
+    )
     await hass.async_block_till_done()
     assert hass.states.get("sensor.kitchen_new_key") is not None

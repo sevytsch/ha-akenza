@@ -14,7 +14,11 @@ PICTURE = "https://raw.githubusercontent.com/akenza-io/device-type-library/main/
 
 
 async def test_image_served(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None, hass_client
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
+    hass_client,
 ) -> None:
     """The image proxy serves the device-type picture."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
@@ -32,7 +36,10 @@ async def test_image_served(
 
 
 async def test_images_disabled(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """No image entities when the option is off."""
     entry = MockConfigEntry(

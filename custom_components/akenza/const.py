@@ -16,6 +16,10 @@ CONF_ENABLE_HIDDEN_KPIS: Final = "enable_hidden_kpis"
 CONF_POLL_INTERVAL: Final = "poll_interval_minutes"
 CONF_DEVICE_IMAGES: Final = "device_images"
 CONF_DATA_KEYS_ONLY: Final = "data_keys_only"
+# {device_type_id | "device:<akenza_id>": ["topic/key", "topic/*", ...]}
+CONF_EXCLUDED_DATA_POINTS: Final = "excluded_data_points"
+DEVICE_TARGET_PREFIX: Final = "device:"
+TOPIC_WILDCARD: Final = "*"
 
 DEFAULT_BASE_URL: Final = "https://api.akenza.io"
 DEFAULT_POLL_INTERVAL: Final = 15
@@ -64,6 +68,14 @@ LONGITUDE_KEYS: Final = ("longitude", "lng", "lon", "long")
 GPS_ACCURACY_KEYS: Final = ("accuracy", "gpsAccuracy", "hdop")
 
 SERVICE_SEND_DOWNLINK: Final = "send_downlink"
+EVENT_DEVICE_ADDED: Final = "akenza_device_added"
+EVENT_DEVICE_REMOVED: Final = "akenza_device_removed"
+# repair issues
+ISSUE_MISSING_PERMISSIONS: Final = "missing_permissions"
+ISSUE_WORKSPACE_UNAVAILABLE: Final = "workspace_unavailable"
+ISSUE_STREAM_DISCONNECTED: Final = "stream_disconnected"
+STREAM_ISSUE_DELAY: Final = 600
+README_URL: Final = "https://github.com/sevytsch/ha-akenza#readme"
 ATTR_PAYLOAD: Final = "payload"
 ATTR_PAYLOAD_HEX: Final = "payload_hex"
 ATTR_PORT: Final = "port"

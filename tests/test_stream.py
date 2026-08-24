@@ -88,20 +88,50 @@ async def test_subscribe_and_samples() -> None:
     ws = FakeWS(
         [
             greeting(),
-            FakeMsg(aiohttp.WSMsgType.TEXT, {"type": "subscribed", "subscriptions": [{"assetId": "a", "valid": True}]}),
-            FakeMsg(aiohttp.WSMsgType.TEXT, {"type": "sample_insert", "sample": {"deviceId": "a", "topic": "default", "timestamp": "2026-08-20T15:15:34.919Z", "data": {"t": 1}}}),
+            FakeMsg(
+                aiohttp.WSMsgType.TEXT,
+                {"type": "subscribed", "subscriptions": [{"assetId": "a", "valid": True}]},
+            ),
+            FakeMsg(
+                aiohttp.WSMsgType.TEXT,
+                {
+                    "type": "sample_insert",
+                    "sample": {
+                        "deviceId": "a",
+                        "topic": "default",
+                        "timestamp": "2026-08-20T15:15:34.919Z",
+                        "data": {"t": 1},
+                    },
+                },
+            ),
             FakeMsg(aiohttp.WSMsgType.TEXT, {"type": "error", "message": "boom"}),
-            FakeMsg(aiohttp.WSMsgType.TEXT, {"type": "sample_insert", "sample": {"deviceId": "a", "topic": "x", "data": "not-a-dict"}}),
+            FakeMsg(
+                aiohttp.WSMsgType.TEXT,
+                {
+                    "type": "sample_insert",
+                    "sample": {"deviceId": "a", "topic": "x", "data": "not-a-dict"},
+                },
+            ),
             FakeMsg(aiohttp.WSMsgType.CLOSE),
         ]
     )
     session = FakeSession([ws])
     samples: list[Sample] = []
     connections: list[bool] = []
-    stream = AkenzaStream(session, "wss://x/v3/data-streams", "KEY", on_sample=samples.append, on_connection=connections.append, on_auth_failed=lambda: None)
+    stream = AkenzaStream(
+        session,
+        "wss://x/v3/data-streams",
+        "KEY",
+        on_sample=samples.append,
+        on_connection=connections.append,
+        on_auth_failed=lambda: None,
+    )
     ids = [f"{i:016x}" for i in range(150)]
     stream.set_asset_ids(ids, make_task)
-    with patch("custom_components.akenza.stream.AkenzaStream._backoff_sleep", AsyncMock(side_effect=asyncio.CancelledError)):
+    with patch(
+        "custom_components.akenza.stream.AkenzaStream._backoff_sleep",
+        AsyncMock(side_effect=asyncio.CancelledError),
+    ):
         stream.start(make_task)
         with pytest.raises(asyncio.CancelledError):
             await stream._task
@@ -128,7 +158,14 @@ async def test_reconnect_with_backoff() -> None:
             stop.set()
             await asyncio.Event().wait()
 
-    stream = AkenzaStream(session, "wss://x", "KEY", on_sample=lambda s: None, on_connection=lambda c: None, on_auth_failed=lambda: None)
+    stream = AkenzaStream(
+        session,
+        "wss://x",
+        "KEY",
+        on_sample=lambda s: None,
+        on_connection=lambda c: None,
+        on_auth_failed=lambda: None,
+    )
     stream.set_asset_ids(["a"], make_task)
     with patch("custom_components.akenza.stream.AkenzaStream._backoff_sleep", fake_sleep):
         stream.start(make_task)
@@ -144,7 +181,14 @@ async def test_auth_failure_stops_loop() -> None:
     err = aiohttp.WSServerHandshakeError(MagicMock(), (), status=401, message="nope")
     session = FakeSession([err])
     auth_failed = MagicMock()
-    stream = AkenzaStream(session, "wss://x", "KEY", on_sample=lambda s: None, on_connection=lambda c: None, on_auth_failed=auth_failed)
+    stream = AkenzaStream(
+        session,
+        "wss://x",
+        "KEY",
+        on_sample=lambda s: None,
+        on_connection=lambda c: None,
+        on_auth_failed=auth_failed,
+    )
     stream.start(make_task)
     await stream._task
     auth_failed.assert_called_once()
@@ -155,7 +199,14 @@ async def test_live_diff_subscribe() -> None:
     """Changing asset ids while connected sends subscribe/unsubscribe deltas."""
     ws = FakeWS([greeting()], hold=True)
     session = FakeSession([ws])
-    stream = AkenzaStream(session, "wss://x", "KEY", on_sample=lambda s: None, on_connection=lambda c: None, on_auth_failed=lambda: None)
+    stream = AkenzaStream(
+        session,
+        "wss://x",
+        "KEY",
+        on_sample=lambda s: None,
+        on_connection=lambda c: None,
+        on_auth_failed=lambda: None,
+    )
     stream.set_asset_ids(["a", "b"], make_task)
     stream.start(make_task)
     for _ in range(10):

@@ -48,7 +48,7 @@ async def async_setup_entry(
         new: list[TrackerEntity] = []
         for device_id, state in coordinator.data.items():
             for topic, lat, lon, acc in gps_topics(state):
-                if coordinator.default_topic_only and topic != "default":
+                if not coordinator.topic_wanted(state, topic):
                     continue
                 uid = f"{DOMAIN}_{device_id}_{topic}_position"
                 if uid in known:

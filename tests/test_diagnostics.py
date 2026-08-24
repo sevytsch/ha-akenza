@@ -10,7 +10,10 @@ from .conftest import setup_integration
 
 
 async def test_diagnostics_redacts_secrets(
-    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_config_entry: MockConfigEntry, mock_stream: None
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
 ) -> None:
     """API key and physical device ids are redacted."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)

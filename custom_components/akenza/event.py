@@ -19,12 +19,16 @@ from .sensor import _display_name
 
 PARALLEL_UPDATES = 0
 
-_BUTTON_KEY = re.compile(r"^(button|btn|key)\d*$|^buttonevent$|^(short|long|double)press(ed)?$|^press(type|ed)?$", re.I)
+_BUTTON_KEY = re.compile(
+    r"^(button|btn|key)\d*$|^buttonevent$|^(short|long|double)press(ed)?$|^press(type|ed)?$", re.I
+)
 
 
 def is_button_event(descriptor: DataPointDescriptor) -> bool:
     """Whether a data key describes a button press."""
-    if descriptor.topic in DISABLED_TOPICS or descriptor.topic.startswith(DIAGNOSTIC_TOPIC_PREFIXES):
+    if descriptor.topic in DISABLED_TOPICS or descriptor.topic.startswith(
+        DIAGNOSTIC_TOPIC_PREFIXES
+    ):
         return False
     _, mtype, _ = split_measurement_type(descriptor.measurement_type)
     if mtype in ("buttonEvent", "buttonStatus"):
@@ -46,7 +50,9 @@ async def async_setup_entry(
         new: list[EventEntity] = []
         for device_id, state in coordinator.data.items():
             for descriptor in state.descriptors.values():
-                if not is_button_event(descriptor) or not coordinator.entity_wanted(state, descriptor):
+                if not is_button_event(descriptor) or not coordinator.entity_wanted(
+                    state, descriptor
+                ):
                     continue
                 uid = f"{DOMAIN}_{device_id}_{descriptor.key_id}_event"
                 if uid in known:
@@ -96,7 +102,9 @@ class AkenzaButtonEvent(AkenzaDeviceEntity, EventEntity):
         if ts is None or (self._handled is not None and ts <= self._handled):
             return
         self._handled = ts
-        if self._descriptor.key not in state.last_sample_keys.get(self._descriptor.topic, frozenset()):
+        if self._descriptor.key not in state.last_sample_keys.get(
+            self._descriptor.topic, frozenset()
+        ):
             return
         value = state.values.get(self._descriptor.key_id)
         if not _is_pressed(value, self._descriptor):

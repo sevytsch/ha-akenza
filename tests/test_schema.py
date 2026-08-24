@@ -33,7 +33,10 @@ def test_nested_and_unsupported() -> None:
     """Nested objects are flattened one level; arrays are ignored."""
     schema = {
         "properties": {
-            "pos": {"type": "object", "properties": {"lat": {"type": "number"}, "deep": {"type": "object"}}},
+            "pos": {
+                "type": "object",
+                "properties": {"lat": {"type": "number"}, "deep": {"type": "object"}},
+            },
             "list": {"type": "array"},
             "state": {"type": ["string", "null"], "enum": ["a", "b"]},
         }
@@ -59,7 +62,9 @@ def test_merge_precedence() -> None:
     """First source wins, gaps are filled from later sources."""
     primary = {"t_k": DataPointDescriptor("t", "k", ValueType.NUMBER, title=None, unit="°C")}
     secondary = {
-        "t_k": DataPointDescriptor("t", "k", ValueType.INTEGER, title="Temp", unit="K", inferred=True),
+        "t_k": DataPointDescriptor(
+            "t", "k", ValueType.INTEGER, title="Temp", unit="K", inferred=True
+        ),
         "t_o": DataPointDescriptor("t", "o", ValueType.STRING, inferred=True),
     }
     merged = merge_descriptors(primary, secondary)
