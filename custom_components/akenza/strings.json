@@ -310,7 +310,7 @@
     },
     "stream_disconnected": {
       "title": "akenza live stream for {organization} disconnected",
-      "description": "The WebSocket live stream has been disconnected for more than 10 minutes; measurements are not updated live. Home Assistant keeps reconnecting automatically. Check the internet connection and https://status.akenza.io. This issue disappears once the stream is back."
+      "description": "The WebSocket live stream has been disconnected for more than 10 minutes; measurements are not updated live. Home Assistant keeps reconnecting automatically. Check the internet connection and the akenza status page ({status_url}). This issue disappears once the stream is back."
     }
   }
 }

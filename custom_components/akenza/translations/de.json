@@ -310,7 +310,7 @@
     },
     "stream_disconnected": {
       "title": "akenza-Live-Stream für {organization} getrennt",
-      "description": "Der WebSocket-Live-Stream ist seit mehr als 10 Minuten getrennt; Messwerte werden nicht live aktualisiert. Home Assistant verbindet automatisch neu. Prüfe die Internetverbindung und https://status.akenza.io. Der Hinweis verschwindet, sobald der Stream wieder steht."
+      "description": "Der WebSocket-Live-Stream ist seit mehr als 10 Minuten getrennt; Messwerte werden nicht live aktualisiert. Home Assistant verbindet automatisch neu. Prüfe die Internetverbindung und die akenza-Statusseite ({status_url}). Der Hinweis verschwindet, sobald der Stream wieder steht."
     }
   }
 }

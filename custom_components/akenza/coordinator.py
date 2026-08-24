@@ -214,7 +214,10 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
                 is_fixable=False,
                 severity=ir.IssueSeverity.WARNING,
                 translation_key=ISSUE_STREAM_DISCONNECTED,
-                translation_placeholders={"organization": self.organization_name},
+                translation_placeholders={
+                    "organization": self.organization_name,
+                    "status_url": "https://status.akenza.io",
+                },
                 learn_more_url=README_URL,
             )
 
