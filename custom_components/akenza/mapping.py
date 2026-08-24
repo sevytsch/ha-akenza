@@ -34,6 +34,8 @@ from homeassistant.const import (
     UnitOfSpeed,
     UnitOfTemperature,
     UnitOfTime,
+    UnitOfVolume,
+    UnitOfVolumeFlowRate,
 )
 
 from .const import (
@@ -83,7 +85,46 @@ UNIT_ALIASES: dict[str, str] = {
     "W": UnitOfPower.WATT,
     "kW": UnitOfPower.KILO_WATT,
     "Wh": UnitOfEnergy.WATT_HOUR,
+    "wh": UnitOfEnergy.WATT_HOUR,
     "kWh": UnitOfEnergy.KILO_WATT_HOUR,
+    "kwh": UnitOfEnergy.KILO_WATT_HOUR,
+    "KWh": UnitOfEnergy.KILO_WATT_HOUR,
+    "MWh": UnitOfEnergy.MEGA_WATT_HOUR,
+    "GWh": UnitOfEnergy.GIGA_WATT_HOUR,
+    "J": UnitOfEnergy.JOULE,
+    "kJ": UnitOfEnergy.KILO_JOULE,
+    "MJ": UnitOfEnergy.MEGA_JOULE,
+    "GJ": UnitOfEnergy.GIGA_JOULE,
+    "kcal": UnitOfEnergy.KILO_CALORIE,
+    "m3": UnitOfVolume.CUBIC_METERS,
+    "m³": UnitOfVolume.CUBIC_METERS,
+    "cbm": UnitOfVolume.CUBIC_METERS,
+    "cubicMeters": UnitOfVolume.CUBIC_METERS,
+    "L": UnitOfVolume.LITERS,
+    "l": UnitOfVolume.LITERS,
+    "liter": UnitOfVolume.LITERS,
+    "liters": UnitOfVolume.LITERS,
+    "litre": UnitOfVolume.LITERS,
+    "litres": UnitOfVolume.LITERS,
+    "ltr": UnitOfVolume.LITERS,
+    "mL": UnitOfVolume.MILLILITERS,
+    "ml": UnitOfVolume.MILLILITERS,
+    "gal": UnitOfVolume.GALLONS,
+    "ft3": UnitOfVolume.CUBIC_FEET,
+    "ft³": UnitOfVolume.CUBIC_FEET,
+    "m3/h": UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
+    "m³/h": UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR,
+    "m3/min": UnitOfVolumeFlowRate.CUBIC_METERS_PER_MINUTE,
+    "m³/min": UnitOfVolumeFlowRate.CUBIC_METERS_PER_MINUTE,
+    "m3/s": UnitOfVolumeFlowRate.CUBIC_METERS_PER_SECOND,
+    "m³/s": UnitOfVolumeFlowRate.CUBIC_METERS_PER_SECOND,
+    "L/h": UnitOfVolumeFlowRate.LITERS_PER_HOUR,
+    "l/h": UnitOfVolumeFlowRate.LITERS_PER_HOUR,
+    "L/min": UnitOfVolumeFlowRate.LITERS_PER_MINUTE,
+    "l/min": UnitOfVolumeFlowRate.LITERS_PER_MINUTE,
+    "L/s": UnitOfVolumeFlowRate.LITERS_PER_SECOND,
+    "l/s": UnitOfVolumeFlowRate.LITERS_PER_SECOND,
+    "gal/min": UnitOfVolumeFlowRate.GALLONS_PER_MINUTE,
     "VA": UnitOfApparentPower.VOLT_AMPERE,
     "VAR": UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
     "var": UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
@@ -91,6 +132,7 @@ UNIT_ALIASES: dict[str, str] = {
     "VARh": UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR,
     "varh": UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR,
     "kVARh": UnitOfReactiveEnergy.KILO_VOLT_AMPERE_REACTIVE_HOUR,
+    "kvarh": UnitOfReactiveEnergy.KILO_VOLT_AMPERE_REACTIVE_HOUR,
     "Hz": UnitOfFrequency.HERTZ,
     "mm": UnitOfLength.MILLIMETERS,
     "cm": UnitOfLength.CENTIMETERS,
@@ -103,6 +145,34 @@ UNIT_ALIASES: dict[str, str] = {
     "min": UnitOfTime.MINUTES,
     "s": UnitOfTime.SECONDS,
     "h": UnitOfTime.HOURS,
+}
+
+# measurementType unit segment (akenza/<category>/<type>/<unit>) -> HA unit, used when the schema has no unit
+_TYPE_UNIT_SEGMENTS: dict[str, str] = {
+    "celsius": UnitOfTemperature.CELSIUS,
+    "fahrenheit": UnitOfTemperature.FAHRENHEIT,
+    "kelvin": UnitOfTemperature.KELVIN,
+    "percent": PERCENTAGE,
+    "ppm": UnitOfRatio.PARTS_PER_MILLION,
+    "ppb": UnitOfRatio.PARTS_PER_BILLION,
+    "mcgm3": UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
+    "lux": LIGHT_LUX,
+    "volt": UnitOfElectricPotential.VOLT,
+    "millivolt": UnitOfElectricPotential.MILLIVOLT,
+    "ampere": UnitOfElectricCurrent.AMPERE,
+    "milliampere": UnitOfElectricCurrent.MILLIAMPERE,
+    "watt": UnitOfPower.WATT,
+    "kiloWatt": UnitOfPower.KILO_WATT,
+    "wattHours": UnitOfEnergy.WATT_HOUR,
+    "kiloWattHours": UnitOfEnergy.KILO_WATT_HOUR,
+    "megaWattHours": UnitOfEnergy.MEGA_WATT_HOUR,
+    "voltAmpereReactiveHours": UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR,
+    "kiloVoltAmpereReactiveHours": UnitOfReactiveEnergy.KILO_VOLT_AMPERE_REACTIVE_HOUR,
+    "voltAmpere": UnitOfApparentPower.VOLT_AMPERE,
+    "hertz": UnitOfFrequency.HERTZ,
+    "meter": UnitOfLength.METERS,
+    "cubicMeters": UnitOfVolume.CUBIC_METERS,
+    "liters": UnitOfVolume.LITERS,
 }
 
 # measurementType "<type>" (second path segment of akenza/<category>/<type>/<unit>) -> sensor device class
@@ -126,10 +196,24 @@ _TYPE_DEVICE_CLASS: dict[str, SensorDeviceClass] = {
     "current": SensorDeviceClass.CURRENT,
     "activePower": SensorDeviceClass.POWER,
     "activeEnergy": SensorDeviceClass.ENERGY,
+    "energy": SensorDeviceClass.ENERGY,
+    "heatEnergy": SensorDeviceClass.ENERGY,
+    "thermalEnergy": SensorDeviceClass.ENERGY,
     "apparentPower": SensorDeviceClass.APPARENT_POWER,
     "reactivePower": SensorDeviceClass.REACTIVE_POWER,
     "reactiveEnergy": SensorDeviceClass.REACTIVE_ENERGY,
+    "water": SensorDeviceClass.WATER,
+    "waterVolume": SensorDeviceClass.WATER,
+    "waterConsumption": SensorDeviceClass.WATER,
+    "gas": SensorDeviceClass.GAS,
+    "gasVolume": SensorDeviceClass.GAS,
+    "gasConsumption": SensorDeviceClass.GAS,
+    "volume": SensorDeviceClass.VOLUME,
+    "flow": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "flowRate": SensorDeviceClass.VOLUME_FLOW_RATE,
+    "volumeFlow": SensorDeviceClass.VOLUME_FLOW_RATE,
     "frequency": SensorDeviceClass.FREQUENCY,
+    "powerFactor": SensorDeviceClass.POWER_FACTOR,
     "distance": SensorDeviceClass.DISTANCE,
     "fillLevel": SensorDeviceClass.DISTANCE,  # only kept when the unit is a length
     "speed": SensorDeviceClass.SPEED,
@@ -140,12 +224,48 @@ _TOTAL_INCREASING_TYPES = {
     "activeEnergy",
     "reactiveEnergy",
     "apparentEnergy",
+    "energy",
+    "heatEnergy",
+    "thermalEnergy",
+    "water",
+    "waterVolume",
+    "waterConsumption",
+    "gas",
+    "gasVolume",
+    "gasConsumption",
+    "volume",
     "peopleIn",
     "peopleOut",
     "pulseInput",
     "motion",
     "usage",
 }
+# device classes that are meter readings (energy dashboard) unless the key says otherwise
+_METER_DEVICE_CLASSES = {
+    SensorDeviceClass.ENERGY,
+    SensorDeviceClass.REACTIVE_ENERGY,
+    SensorDeviceClass.WATER,
+    SensorDeviceClass.GAS,
+    SensorDeviceClass.VOLUME,
+}
+# key fragments that mark a value as "consumption of the last period", not a meter reading
+_INTERVAL_KEY_MARKERS = (
+    "periodic",
+    "interval",
+    "delta",
+    "relative",
+    "increment",
+    "lastperiod",
+    "sincelast",
+    "perhour",
+    "perday",
+    "hourly",
+    "daily",
+)
+# key fragments that mark a value as a meter reading / running total
+_TOTAL_KEY_MARKERS = ("cumulative", "cumulated", "total", "absolute", "meterreading", "index")
+# measurementType unit segments that denote counters
+_COUNT_UNIT_SEGMENTS = {"count", "pulses"}
 # measurement types without a state class (events / positions)
 _NO_STATE_CLASS_TYPES = {
     "latitude",
@@ -205,6 +325,27 @@ _UNIT_DEVICE_CLASS: dict[str, SensorDeviceClass] = {
     UnitOfPower.KILO_WATT: SensorDeviceClass.POWER,
     UnitOfEnergy.WATT_HOUR: SensorDeviceClass.ENERGY,
     UnitOfEnergy.KILO_WATT_HOUR: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.MEGA_WATT_HOUR: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.GIGA_WATT_HOUR: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.JOULE: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.KILO_JOULE: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.MEGA_JOULE: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.GIGA_JOULE: SensorDeviceClass.ENERGY,
+    UnitOfEnergy.KILO_CALORIE: SensorDeviceClass.ENERGY,
+    UnitOfReactiveEnergy.VOLT_AMPERE_REACTIVE_HOUR: SensorDeviceClass.REACTIVE_ENERGY,
+    UnitOfReactiveEnergy.KILO_VOLT_AMPERE_REACTIVE_HOUR: SensorDeviceClass.REACTIVE_ENERGY,
+    UnitOfVolume.CUBIC_METERS: SensorDeviceClass.VOLUME,
+    UnitOfVolume.LITERS: SensorDeviceClass.VOLUME,
+    UnitOfVolume.MILLILITERS: SensorDeviceClass.VOLUME,
+    UnitOfVolume.GALLONS: SensorDeviceClass.VOLUME,
+    UnitOfVolume.CUBIC_FEET: SensorDeviceClass.VOLUME,
+    UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.CUBIC_METERS_PER_MINUTE: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.CUBIC_METERS_PER_SECOND: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.LITERS_PER_HOUR: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.LITERS_PER_MINUTE: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.LITERS_PER_SECOND: SensorDeviceClass.VOLUME_FLOW_RATE,
+    UnitOfVolumeFlowRate.GALLONS_PER_MINUTE: SensorDeviceClass.VOLUME_FLOW_RATE,
     UnitOfSoundPressure.WEIGHTED_DECIBEL_A: SensorDeviceClass.SOUND_PRESSURE,
     UnitOfDensity.MICROGRAMS_PER_CUBIC_METER: SensorDeviceClass.PM25,
     UnitOfFrequency.HERTZ: SensorDeviceClass.FREQUENCY,
@@ -239,7 +380,12 @@ _KEY_HEURISTICS: tuple[tuple[str, SensorDeviceClass, str | None], ...] = (
     ("voltage", SensorDeviceClass.VOLTAGE, None),
     ("current", SensorDeviceClass.CURRENT, None),
     ("energy", SensorDeviceClass.ENERGY, None),
+    ("powerfactor", SensorDeviceClass.POWER_FACTOR, None),
     ("power", SensorDeviceClass.POWER, None),
+    ("water", SensorDeviceClass.WATER, None),
+    ("gas", SensorDeviceClass.GAS, None),
+    ("flow", SensorDeviceClass.VOLUME_FLOW_RATE, None),
+    ("volume", SensorDeviceClass.VOLUME, None),
     ("distance", SensorDeviceClass.DISTANCE, None),
     ("speed", SensorDeviceClass.SPEED, None),
 )
@@ -288,6 +434,11 @@ _PRECISION: dict[SensorDeviceClass, int] = {
     SensorDeviceClass.CURRENT: 2,
     SensorDeviceClass.POWER: 1,
     SensorDeviceClass.ENERGY: 3,
+    SensorDeviceClass.REACTIVE_ENERGY: 3,
+    SensorDeviceClass.WATER: 3,
+    SensorDeviceClass.GAS: 3,
+    SensorDeviceClass.VOLUME: 3,
+    SensorDeviceClass.VOLUME_FLOW_RATE: 2,
     SensorDeviceClass.ATMOSPHERIC_PRESSURE: 1,
     SensorDeviceClass.SIGNAL_STRENGTH: 0,
     SensorDeviceClass.SOUND_PRESSURE: 1,
@@ -429,7 +580,39 @@ def normalize_unit(unit: str | None) -> str | None:
     """Map an akenza unit spelling to the HA unit string."""
     if not unit:
         return None
-    return UNIT_ALIASES.get(unit, UNIT_ALIASES.get(unit.strip(), unit.strip()))
+    stripped = unit.strip()
+    return UNIT_ALIASES.get(unit, UNIT_ALIASES.get(stripped, stripped))
+
+
+def _is_interval_value(key_lower: str, sibling_keys: frozenset[str]) -> bool:
+    """Whether a key holds the consumption of the last period rather than a meter reading.
+
+    ``activeEnergyPositive`` next to ``activeEnergyPositiveCumulative`` is the
+    interval value; ``periodicCounterIn`` next to ``totalCounterIn`` likewise.
+    """
+    if any(marker in key_lower for marker in _TOTAL_KEY_MARKERS):
+        return False
+    if any(marker in key_lower for marker in _INTERVAL_KEY_MARKERS):
+        return True
+    return any(
+        sibling != key_lower
+        and sibling.startswith(key_lower)
+        and any(marker in sibling[len(key_lower) :] for marker in _TOTAL_KEY_MARKERS)
+        for sibling in sibling_keys
+    )
+
+
+def _refine_volume_class(
+    device_class: SensorDeviceClass | None, key_lower: str
+) -> SensorDeviceClass | None:
+    """m³ / L can be water, gas or a generic volume – decide by the key name."""
+    if device_class is not SensorDeviceClass.VOLUME:
+        return device_class
+    if "water" in key_lower or "h2o" in key_lower:
+        return SensorDeviceClass.WATER
+    if "gas" in key_lower:
+        return SensorDeviceClass.GAS
+    return device_class
 
 
 def is_diagnostic(descriptor: DataPointDescriptor) -> bool:
@@ -481,10 +664,23 @@ def _state_class_for(
     return next(iter(allowed), None)
 
 
-def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) -> SensorSpec:
-    """Resolve HA sensor attributes for a number/integer/string data point."""
-    category, mtype, _ = split_measurement_type(descriptor.measurement_type)
+def sensor_spec(
+    descriptor: DataPointDescriptor,
+    *,
+    enable_hidden_kpis: bool,
+    sibling_keys: frozenset[str] = frozenset(),
+) -> SensorSpec:
+    """Resolve HA sensor attributes for a number/integer/string data point.
+
+    ``sibling_keys`` are the lower-cased keys of the same topic; they let a plain
+    ``activeEnergy`` next to ``activeEnergyCumulative`` be recognised as an interval value.
+    """
+    category, mtype, type_unit = split_measurement_type(descriptor.measurement_type)
+    if mtype == "custom":
+        mtype = None
     unit = normalize_unit(descriptor.unit)
+    if unit is None and type_unit:
+        unit = _TYPE_UNIT_SEGMENTS.get(type_unit)
     key_lower = descriptor.key.rsplit(".", 1)[-1].lower()
     entity_category = EntityCategory.DIAGNOSTIC if is_diagnostic(descriptor) else None
     enabled = not is_disabled_by_default(descriptor, enable_hidden_kpis=enable_hidden_kpis)
@@ -512,7 +708,7 @@ def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) ->
 
     if mtype:
         device_class = _TYPE_DEVICE_CLASS.get(mtype)
-        if mtype in _TOTAL_INCREASING_TYPES:
+        if mtype in _TOTAL_INCREASING_TYPES or type_unit in _COUNT_UNIT_SEGMENTS:
             wanted_state_class = SensorStateClass.TOTAL_INCREASING
         elif mtype in _NO_STATE_CLASS_TYPES:
             wanted_state_class = None
@@ -522,20 +718,36 @@ def sensor_spec(descriptor: DataPointDescriptor, *, enable_hidden_kpis: bool) ->
             device_class = None
         if device_class is SensorDeviceClass.PM25 and "pm" not in key_lower:
             device_class = None
-        if device_class is SensorDeviceClass.ENERGY:
-            wanted_state_class = SensorStateClass.TOTAL_INCREASING
     if device_class is None and not mtype:
         for needle, candidate, default_unit in _KEY_HEURISTICS:
             if needle in key_lower:
                 if unit is None and default_unit is not None:
                     unit = default_unit
                 device_class = candidate
-                if candidate is SensorDeviceClass.ENERGY:
-                    wanted_state_class = SensorStateClass.TOTAL_INCREASING
                 break
+    device_class = _refine_volume_class(device_class, key_lower)
     if device_class is not None and not _valid_unit(device_class, unit):
         device_class = None
-    if not mtype and key_lower in ("latitude", "longitude", "lat", "lon", "lng", "heading", "headingdeg"):
+    if device_class in _METER_DEVICE_CLASSES:
+        wanted_state_class = SensorStateClass.TOTAL_INCREASING
+    if wanted_state_class is SensorStateClass.TOTAL_INCREASING and _is_interval_value(
+        key_lower, sibling_keys
+    ):
+        # consumption of the last period: a plain measurement, not a meter reading.
+        # Energy/water/gas classes require total state classes, so drop the class
+        # (keeps the unit) – this also keeps the value out of the energy dashboard.
+        wanted_state_class = SensorStateClass.MEASUREMENT
+        if device_class in _METER_DEVICE_CLASSES:
+            device_class = None
+    if not mtype and key_lower in (
+        "latitude",
+        "longitude",
+        "lat",
+        "lon",
+        "lng",
+        "heading",
+        "headingdeg",
+    ):
         wanted_state_class = None
     if unit == PERCENTAGE and device_class is None and descriptor.value_type is ValueType.INTEGER:
         wanted_state_class = SensorStateClass.MEASUREMENT

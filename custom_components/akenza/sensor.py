@@ -199,7 +199,16 @@ class AkenzaDataPointSensor(AkenzaDeviceEntity, RestoreSensor):
         super().__init__(coordinator, device_id)
         self._descriptor = descriptor
         self._attr_unique_id = unique_id
-        spec = sensor_spec(descriptor, enable_hidden_kpis=coordinator.enable_hidden_kpis)
+        state = coordinator.data[device_id]
+        spec = sensor_spec(
+            descriptor,
+            enable_hidden_kpis=coordinator.enable_hidden_kpis,
+            sibling_keys=frozenset(
+                d.key.rsplit(".", 1)[-1].lower()
+                for d in state.descriptors.values()
+                if d.topic == descriptor.topic
+            ),
+        )
         self._attr_name = _display_name(descriptor, coordinator.data[device_id])
         self._attr_device_class = spec.device_class
         self._attr_state_class = spec.state_class
