@@ -120,9 +120,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: AkenzaConfigEntry) -> bo
 
     # Create the hub device first so the per-device `via_device` reference resolves.
     device_registry = dr.async_get(hass)
-    device_registry.async_get_or_create(
+    hub = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id, **hub_device_info(coordinator)
     )
+    coordinator.hub_device_id = hub.id
     # Versions < 0.2.2 stored the device-type id as model_id; the registry keeps
     # stale values unless they are cleared explicitly.
     for device in dr.async_entries_for_config_entry(device_registry, entry.entry_id):

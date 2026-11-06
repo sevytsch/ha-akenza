@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 - 2026-11-06
+
+### Fixed
+- Compatibility with Home Assistant 2026.11: devices link to their hub via `via_device_id`; the deprecated `via_device` parameter logged "please create a bug report" warnings on every restart and would stop working in 2027.8.
+
 ## 0.4.1 - 2026-11-06
 
 ### Fixed

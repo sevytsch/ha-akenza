@@ -51,7 +51,7 @@ def build_device_info(state: DeviceState, coordinator: AkenzaCoordinator) -> Dev
             workspace_id=device.workspace_id,
             device_id=device.id,
         ),
-        via_device=hub_identifier(coordinator),
+        via_device_id=coordinator.hub_device_id,
         suggested_area=suggested_area(state),
     )
 

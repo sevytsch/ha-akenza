@@ -118,6 +118,8 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self._seed_task: asyncio.Task[None] | None = None
         self._connections = 0
         self._disconnected_at: float | None = None
+        # registry id of the hub device, set during entry setup (for via_device_id)
+        self.hub_device_id: str | None = None
         self._unavailable_types: set[str] = set()
         self._missing_workspaces: set[str] = set()
         self._forbidden: set[str] = set()
