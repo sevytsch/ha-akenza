@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv venv --python 3.14
       - run: uv pip install -r requirements_test.txt
       - run: .venv/bin/ruff check .
@@ -23,7 +23,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
       - run: uv venv --python 3.14
       - run: uv pip install --upgrade pytest-homeassistant-custom-component respx
       - run: .venv/bin/python -m pytest -q
