@@ -3,6 +3,8 @@ name: Tests
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "0 4 * * 1"
 
 jobs:
   test:
@@ -13,4 +15,15 @@ jobs:
       - run: uv venv --python 3.14
       - run: uv pip install -r requirements_test.txt
       - run: .venv/bin/ruff check .
+      - run: .venv/bin/python -m pytest -q
+
+  # early warning: run against the newest HA test harness (allowed to fail)
+  test-latest-ha:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv --python 3.14
+      - run: uv pip install --upgrade pytest-homeassistant-custom-component respx
       - run: .venv/bin/python -m pytest -q

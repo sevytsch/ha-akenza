@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1 - 2026-11-06
+
+### Fixed
+- When the only selected workspace was deleted in akenza (or the API key lost access to it), the next metadata poll fell back to the organization-wide device listing and imported every device of the organization (or ran into a reauth loop with workspace-scoped keys). The poll now imports nothing in that case and keeps pointing at it via the existing repair issue.
+- Compatibility with Home Assistant 2026.10: device lookups use `async_get_device_by_identifier`; the deprecated `async_get_device` call produced "Please report this issue" warnings and would break in a future release.
+
+### Changed
+- Reconnects after short stream blips (such as akenza's daily server-side connection recycling) no longer trigger a full reseed of every device; the reseed still runs for outages of 60 seconds or more.
+- CI: the test workflow now also runs weekly and additionally against the newest Home Assistant test harness (allowed to fail, as an early warning); Dependabot keeps the actions and test dependencies current.
+
 ## 0.4.0 - 2026-08-24
 
 ### Added
