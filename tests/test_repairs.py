@@ -23,7 +23,17 @@ from custom_components.akenza.const import (
     ISSUE_WORKSPACE_UNAVAILABLE,
 )
 
-from .conftest import BASE, CAT, WS_HOME, WS_LAB, load_fixture, mock_api, paged, setup_integration
+from .conftest import (
+    BASE,
+    CAT,
+    ORG_ID,
+    WS_HOME,
+    WS_LAB,
+    load_fixture,
+    mock_api,
+    paged,
+    setup_integration,
+)
 
 
 async def test_scan_button_and_device_events(
@@ -155,3 +165,81 @@ async def test_stream_disconnected_issue(
     coordinator._handle_connection(True)
     await hass.async_block_till_done()
     assert registry.async_get_issue(DOMAIN, issue_id) is None
+
+
+async def test_last_workspace_deleted_does_not_import_organization(
+    hass: HomeAssistant, aioclient_mock: AiohttpClientMocker, mock_stream: None
+) -> None:
+    """When the only selected workspace is gone, nothing is imported org-wide."""
+    from homeassistant.const import CONF_API_KEY
+
+    from custom_components.akenza.const import (
+        CONF_BASE_URL,
+        CONF_ORGANIZATION_ID,
+        CONF_ORGANIZATION_NAME,
+        CONF_WORKSPACE_IDS,
+    )
+
+    bodies: list[dict] = []
+
+    async def handler(method, url, data):  # noqa: ANN001
+        bodies.append(data)
+        if WS_HOME in (data.get("workspaceIds") or []):
+            return AiohttpClientMockResponse(
+                method, url, status=404, json={"message": f"workspace with id {WS_HOME} not found"}
+            )
+        return AiohttpClientMockResponse(method, url, json=load_fixture("assets_list.json"))
+
+    aioclient_mock.post(f"{BASE}/v3/assets/list", side_effect=handler)
+    mock_api(aioclient_mock)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Test Org",
+        unique_id=ORG_ID,
+        data={
+            CONF_API_KEY: "k",
+            CONF_BASE_URL: BASE,
+            CONF_ORGANIZATION_ID: ORG_ID,
+            CONF_ORGANIZATION_NAME: "Test Org",
+        },
+        options={CONF_WORKSPACE_IDS: [WS_HOME]},
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    async_fire_time_changed(hass, datetime.now(UTC) + timedelta(minutes=16))
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    assert all("organizationId" not in b for b in bodies)
+    assert hass.states.get("sensor.kitchen_temperature") is None
+    issue = ir.async_get(hass).async_get_issue(
+        DOMAIN, f"{ISSUE_WORKSPACE_UNAVAILABLE}_{entry.entry_id}"
+    )
+    assert issue is not None
+
+
+async def test_short_outage_skips_reseed(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry: MockConfigEntry,
+    mock_stream: None,
+) -> None:
+    """A reconnect after a short blip does not trigger the full reseed."""
+    import time as time_module
+
+    await setup_integration(hass, mock_config_entry, aioclient_mock)
+    coordinator = mock_config_entry.runtime_data
+    coordinator._handle_connection(True)  # initial connect
+
+    # short blip (seconds): no reseed
+    coordinator._handle_connection(False)
+    coordinator._disconnected_at = time_module.monotonic() - 5
+    coordinator._handle_connection(True)
+    assert coordinator._unsub_reseed is None
+
+    # long outage: reseed is scheduled
+    coordinator._handle_connection(False)
+    coordinator._disconnected_at = time_module.monotonic() - 120
+    coordinator._handle_connection(True)
+    assert coordinator._unsub_reseed is not None

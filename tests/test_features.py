@@ -32,7 +32,9 @@ async def test_tracker_and_area(
     assert tracker.attributes["source_type"] == "gps"
     assert hass.states.get("device_tracker.kitchen_position") is None
 
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, TRACKER)})
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, TRACKER), mock_config_entry.entry_id
+    )
     assert device is not None and device.area_id == "garage"
     ident = hass.states.get("sensor.garage_tracker_akenza_id")
     assert ident.attributes["custom_fields"] == {"Room": "Garage", "Floor": 2.0}
@@ -101,7 +103,9 @@ async def test_send_downlink_service(
     """The service posts to the downlink endpoint and maps errors."""
     await setup_integration(hass, mock_config_entry, aioclient_mock)
     aioclient_mock.post(f"{BASE}/v3/devices/{KITCHEN}/downlink", json={"id": "dl1"})
-    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, KITCHEN)})
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        (DOMAIN, KITCHEN), mock_config_entry.entry_id
+    )
     await hass.services.async_call(
         DOMAIN,
         "send_downlink",

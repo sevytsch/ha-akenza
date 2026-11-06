@@ -28,7 +28,9 @@ async def test_setup_creates_devices_and_entities(
     assert "non existing `via_device`" not in caplog.text
 
     device_registry = dr.async_get(hass)
-    kitchen = device_registry.async_get_device(identifiers={(DOMAIN, KITCHEN)})
+    kitchen = device_registry.async_get_device_by_identifier(
+        (DOMAIN, KITCHEN), mock_config_entry.entry_id
+    )
     assert kitchen is not None
     assert kitchen.manufacturer == "Elsys"
     assert kitchen.model == "ERS Eco Lite LoRa"
@@ -36,7 +38,9 @@ async def test_setup_creates_devices_and_entities(
     assert kitchen.configuration_url == (
         f"https://app.akenza.io/org/1111111111111111/ws/2222222222222222/assets/device/{KITCHEN}"
     )
-    hub = device_registry.async_get_device(identifiers={(DOMAIN, "org_1111111111111111")})
+    hub = device_registry.async_get_device_by_identifier(
+        (DOMAIN, "org_1111111111111111"), mock_config_entry.entry_id
+    )
     assert hub is not None and kitchen.via_device_id == hub.id
 
     state = hass.states.get("sensor.kitchen_temperature")
@@ -184,8 +188,16 @@ async def test_poll_removes_and_adds_devices(
     await hass.async_block_till_done(wait_background_tasks=True)
 
     device_registry = dr.async_get(hass)
-    assert device_registry.async_get_device(identifiers={(DOMAIN, CAT)}) is None
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "02aaaaaaaaaaaaaa")}) is not None
+    assert (
+        device_registry.async_get_device_by_identifier((DOMAIN, CAT), mock_config_entry.entry_id)
+        is None
+    )
+    assert (
+        device_registry.async_get_device_by_identifier(
+            (DOMAIN, "02aaaaaaaaaaaaaa"), mock_config_entry.entry_id
+        )
+        is not None
+    )
     assert hass.states.get("binary_sensor.newcomer_online") is not None
     assert hass.states.get("sensor.cat_tracker_at_home") is None
     # the newcomer was seeded right away: its data points exist with values
@@ -234,7 +246,9 @@ async def test_remove_device(
 
     await setup_integration(hass, mock_config_entry, aioclient_mock)
     device_registry = dr.async_get(hass)
-    kitchen = device_registry.async_get_device(identifiers={(DOMAIN, KITCHEN)})
+    kitchen = device_registry.async_get_device_by_identifier(
+        (DOMAIN, KITCHEN), mock_config_entry.entry_id
+    )
     assert await async_remove_config_entry_device(hass, mock_config_entry, kitchen) is False
     stale = device_registry.async_get_or_create(
         config_entry_id=mock_config_entry.entry_id, identifiers={(DOMAIN, "stale")}
@@ -262,7 +276,12 @@ async def test_stale_model_id_is_cleared(
     mock_api(aioclient_mock)
     assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done(wait_background_tasks=True)
-    assert registry.async_get_device(identifiers={(DOMAIN, KITCHEN)}).model_id is None
+    assert (
+        registry.async_get_device_by_identifier(
+            (DOMAIN, KITCHEN), mock_config_entry.entry_id
+        ).model_id
+        is None
+    )
 
 
 async def test_failed_poll_keeps_entities_available(

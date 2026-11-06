@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import time
 from collections.abc import Callable, Coroutine, Iterable
 from datetime import timedelta
 from typing import Any
@@ -51,6 +52,7 @@ from .const import (
     MAX_BACKFILL_TOPICS,
     README_URL,
     RESEED_DEBOUNCE,
+    RESEED_MIN_OUTAGE,
     SEED_CONCURRENCY,
     SEED_NOTIFY_EVERY,
     SEED_SAMPLE_LIMIT,
@@ -115,6 +117,7 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         self._unsub_reseed: CALLBACK_TYPE | None = None
         self._seed_task: asyncio.Task[None] | None = None
         self._connections = 0
+        self._disconnected_at: float | None = None
         self._unavailable_types: set[str] = set()
         self._missing_workspaces: set[str] = set()
         self._forbidden: set[str] = set()
@@ -226,10 +229,13 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
     async def _async_list_devices(self) -> list[AkenzaDevice]:
         """List devices; drop workspaces that akenza reports as gone (repair issue)."""
         for _ in range(len(self.workspace_ids) + 1):
+            effective = self._effective_workspace_ids()
+            if not effective and (self.workspace_ids or self._access_ids is not None):
+                # every selected (or accessible) workspace is gone; an empty list
+                # would fall back to the organization-wide listing
+                return []
             try:
-                return await self.client.async_list_devices(
-                    self.organization_id, self._effective_workspace_ids()
-                )
+                return await self.client.async_list_devices(self.organization_id, effective)
             except AkenzaNotFoundError as err:
                 match = re.search(r"workspace with id (\w+) not found", str(err), re.IGNORECASE)
                 if not match or match.group(1) in self._missing_workspaces:
@@ -361,7 +367,9 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
         for device_id in device_ids:
             self.cache.descriptors.pop(device_id, None)
             self._device_listeners.pop(device_id, None)
-            entry = registry.async_get_device(identifiers={(DOMAIN, device_id)})
+            entry = registry.async_get_device_by_identifier(
+                (DOMAIN, device_id), self.config_entry.entry_id
+            )
             if entry is not None:
                 registry.async_update_device(
                     entry.id, remove_config_entry_id=self.config_entry.entry_id
@@ -551,8 +559,18 @@ class AkenzaCoordinator(DataUpdateCoordinator[dict[str, DeviceState]]):
     def _handle_connection(self, connected: bool) -> None:
         if connected:
             self._connections += 1
-            if self._connections > 1:
+            outage = (
+                time.monotonic() - self._disconnected_at
+                if self._disconnected_at is not None
+                else None
+            )
+            self._disconnected_at = None
+            # skip the full reseed after blips such as the daily server-side
+            # connection recycling; hardly any samples can have been missed
+            if self._connections > 1 and (outage is None or outage >= RESEED_MIN_OUTAGE):
                 self._schedule_reseed()
+        elif self._disconnected_at is None:
+            self._disconnected_at = time.monotonic()
         self._update_stream_issue(connected)
         self._notify(HUB_KEY)
 

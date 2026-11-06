@@ -49,6 +49,8 @@ WS_GREETING_TIMEOUT: Final = 15
 WS_SUBSCRIBE_CHUNK: Final = 100
 WS_BACKOFF_MAX: Final = 300
 RESEED_DEBOUNCE: Final = 30
+# outages shorter than this skip the full reseed (daily server-side recycling)
+RESEED_MIN_OUTAGE: Final = 60
 
 # Topics whose data keys are considered diagnostic
 DIAGNOSTIC_TOPICS: Final = frozenset({"lifecycle", "configuration", "raw_payload", "fuota"})
